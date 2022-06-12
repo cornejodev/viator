@@ -8,7 +8,7 @@ import (
 
 type Service struct {
 	Storage storage.Storage
-	Demo    DemoService
+	Depot   DepotService
 }
 
 func New(s storage.Storage) (*Service, error) {
@@ -18,6 +18,6 @@ func New(s storage.Storage) (*Service, error) {
 	}
 
 	return &Service{
-		Demo: NewDemoService(r.Demo),
+		Depot: NewDepotService(r.Vehicle),
 	}, nil
 }

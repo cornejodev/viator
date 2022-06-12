@@ -10,8 +10,7 @@ import (
 func Handler(s service.Service) http.Handler {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/demo", demoHandler(s)).Methods("GET")
-	r.HandleFunc("/demo", demoHandlerPost(s)).Methods("POST")
+	r.HandleFunc("/vehicle", addVehicle(s)).Methods("POST")
 
 	return r
 }

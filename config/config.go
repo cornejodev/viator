@@ -2,25 +2,16 @@ package config
 
 // Config server RESTful API.
 type Config struct {
-	// Port for address server, if is empty by default will are 80.
-	Port string
-
-	Database
+	Port     string // Port address for server
+	Database        // Database to be setup
 }
 
 // Database config.
 type Database struct {
-	// Engine eg.: "mysql" or "postgres".
-	Engine string
-
-	// User of database, eg.: "root".
-	User string
-
-	// Password of User database
-	Password string
-
-	// Name of SQL database.
-	Name string
+	Engine   string // Engine eg.: "mysql" or "postgres".
+	User     string // User of database, eg.: "root".
+	Password string // Password of User database
+	Name     string // Name of SQL database.
 }
 
 func New() (*Config, error) {

@@ -31,14 +31,14 @@ func (s storage) ProvideRepository() (*Repository, error) {
 	}
 
 	return &Repository{
-		Demo: postgres.NewDemoRepository(db),
+		Vehicle: postgres.NewVehicleRepository(db),
 	}, nil
 }
 
 type Repository struct {
-	Demo DemoRepository
+	Vehicle VehicleRepository
 }
 
-type DemoRepository interface {
-	Create(demo *domain.Demo) error
+type VehicleRepository interface {
+	Create(vehicle *domain.Vehicle) error
 }
