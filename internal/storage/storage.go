@@ -42,4 +42,5 @@ type Repository struct {
 type VehicleRepository interface {
 	Create(vehicle *domain.Vehicle) error
 	ByID(id int) (*domain.Vehicle, error)
+	All() ([]*domain.Vehicle, error)
 }

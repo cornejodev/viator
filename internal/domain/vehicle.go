@@ -17,8 +17,7 @@ type Vehicle struct {
 	Model             string
 	Year              int
 	Mileage           int
-
-	CreatedAt time.Time
+	CreationDate      time.Time // field relevant for db
 }
 
 type AddVehicleForm struct {
@@ -31,19 +30,19 @@ type AddVehicleForm struct {
 	Mileage           int    `json:"mileage"`
 }
 
-// maybe will be needed
-// type VehicleDTO struct {
-// 	ID                int    `json:"id"`
-// 	Type              string `json:"type"`
-// 	LicensePlate      string `json:"licensePlate"`
-// 	PassengerCapacity int    `json:"passengerCapacity"`
-// 	Model             string `json:"model"`
-// 	Make              string `json:"make"`
-// 	Year              int    `json:"year"`
-// 	Mileage           int    `json:"mileage"`
-// }
+// returns only fields that are relevant to client
+type VehicleCard struct {
+	ID                int    `json:"id"`
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
+}
 
-func (v Vehicle) CheckEmptyFields() error {
+func (v *AddVehicleForm) CheckEmptyFields() error {
 	if v.Type == "" ||
 		v.LicensePlate == "" ||
 		v.PassengerCapacity == 0 ||
@@ -56,6 +55,8 @@ func (v Vehicle) CheckEmptyFields() error {
 	}
 	return nil
 }
+
+type VehicleList []VehicleCard
 
 /*
 Types of vehicles

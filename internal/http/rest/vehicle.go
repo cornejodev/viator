@@ -21,15 +21,7 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		err := s.Depot.Add(&domain.Vehicle{
-			Type:              form.Type,
-			LicensePlate:      form.LicensePlate,
-			PassengerCapacity: form.PassengerCapacity,
-			Make:              form.Make,
-			Model:             form.Model,
-			Year:              form.Year,
-			Mileage:           form.Mileage,
-		})
+		err := s.Depot.Add(&form)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Incorrect or empty parameters in fields", http.StatusBadRequest)
@@ -50,7 +42,7 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		vehicle, err := s.Depot.Find(id)
+		v, err := s.Depot.Find(id)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "An error has ocurred. Unable to fetch vehicle.", http.StatusBadRequest)
@@ -58,6 +50,23 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(vehicle)
+		json.NewEncoder(w).Encode(v)
+	}
+}
+
+func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vehicles, err := s.Depot.List()
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "An error has ocurred. Unable to fetch vehicles.", http.StatusBadRequest)
+			return
+		}
+		if len(vehicles) == 0 {
+			http.Error(w, "Currently no vehicles in depot", http.StatusNoContent)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(vehicles)
 	}
 }

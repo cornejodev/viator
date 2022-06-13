@@ -6,8 +6,9 @@ import (
 )
 
 type DepotService interface {
-	Add(v *domain.Vehicle) error
-	Find(id int) (*domain.Vehicle, error)
+	Add(f *domain.AddVehicleForm) error
+	Find(id int) (*domain.VehicleCard, error)
+	List() (domain.VehicleList, error)
 }
 
 type depotService struct {
@@ -18,16 +19,67 @@ func NewDepotService(repo storage.VehicleRepository) DepotService {
 	return &depotService{repo}
 }
 
-func (ds *depotService) Add(v *domain.Vehicle) error {
-	if err := v.CheckEmptyFields(); err != nil {
+func (ds *depotService) Add(f *domain.AddVehicleForm) error {
+	if err := f.CheckEmptyFields(); err != nil {
 		return err
+	}
+	v := &domain.Vehicle{
+		Type:              f.Type,
+		LicensePlate:      f.LicensePlate,
+		PassengerCapacity: f.PassengerCapacity,
+		Make:              f.Make,
+		Model:             f.Model,
+		Year:              f.Year,
+		Mileage:           f.Mileage,
 	}
 	return ds.repo.Create(v)
 }
 
-func (ds *depotService) Find(id int) (*domain.Vehicle, error) {
+func (ds *depotService) Find(id int) (*domain.VehicleCard, error) {
 	if id == 0 {
-		return &domain.Vehicle{}, domain.ErrVehicleNotFound
+		return &domain.VehicleCard{}, domain.ErrVehicleNotFound
 	}
-	return ds.repo.ByID(id)
+
+	v, err := ds.repo.ByID(id)
+	if err != nil {
+		return &domain.VehicleCard{}, err
+	}
+
+	vc := &domain.VehicleCard{
+		ID:                v.ID,
+		Type:              v.Type,
+		LicensePlate:      v.LicensePlate,
+		PassengerCapacity: v.PassengerCapacity,
+		Model:             v.Model,
+		Make:              v.Make,
+		Year:              v.Year,
+		Mileage:           v.Mileage,
+	}
+
+	return vc, nil
+}
+
+func (ds *depotService) List() (domain.VehicleList, error) {
+	vehicles, _ := ds.repo.All()
+
+	list := make(domain.VehicleList, 0, len(vehicles))
+
+	assemble := func(v *domain.Vehicle) domain.VehicleCard {
+		return domain.VehicleCard{
+			ID:                v.ID,
+			Type:              v.Type,
+			LicensePlate:      v.LicensePlate,
+			PassengerCapacity: v.PassengerCapacity,
+			Model:             v.Model,
+			Make:              v.Make,
+			Year:              v.Year,
+			Mileage:           v.Mileage,
+		}
+	}
+
+	for _, v := range vehicles {
+		list = append(list, assemble(v))
+	}
+	return list, nil
+
 }
