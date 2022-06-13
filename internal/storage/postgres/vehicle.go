@@ -18,7 +18,7 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 	}
 }
 
-func (r VehicleRepository) Create(v *domain.Vehicle) error {
+func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 	stmt, err := r.db.Prepare(
 		`INSERT INTO vehicle (type, license_plate, passenger_capacity, make, model, year, mileage, creation_date) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
@@ -51,9 +51,8 @@ func (r VehicleRepository) Create(v *domain.Vehicle) error {
 	return nil
 }
 
-func (r VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
+func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 	v := &domain.Vehicle{}
-	// var v domain.Vehicle
 
 	stmt, err := r.db.Prepare(
 		`SELECT id, type, license_plate, passenger_capacity, make, model, year, mileage, creation_date
@@ -83,7 +82,7 @@ func (r VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 	return v, nil
 }
 
-func (r VehicleRepository) All() ([]*domain.Vehicle, error) {
+func (r *VehicleRepository) All() ([]*domain.Vehicle, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM vehicle")
 	if err != nil {
 		log.Println("error while preparing statement: ", err)

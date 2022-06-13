@@ -63,7 +63,8 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 			return
 		}
 		if len(vehicles) == 0 {
-			http.Error(w, "Currently no vehicles in depot", http.StatusNoContent)
+			http.Error(w, "Currently no vehicles in depot.", http.StatusOK)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")

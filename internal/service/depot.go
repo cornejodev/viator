@@ -37,12 +37,12 @@ func (ds *depotService) Add(f *domain.AddVehicleForm) error {
 
 func (ds *depotService) Find(id int) (*domain.VehicleCard, error) {
 	if id == 0 {
-		return &domain.VehicleCard{}, domain.ErrVehicleNotFound
+		return nil, domain.ErrVehicleNotFound
 	}
 
 	v, err := ds.repo.ByID(id)
 	if err != nil {
-		return &domain.VehicleCard{}, err
+		return nil, err
 	}
 
 	vc := &domain.VehicleCard{
@@ -60,7 +60,10 @@ func (ds *depotService) Find(id int) (*domain.VehicleCard, error) {
 }
 
 func (ds *depotService) List() (domain.VehicleList, error) {
-	vehicles, _ := ds.repo.All()
+	vehicles, err := ds.repo.All()
+	if err != nil {
+		return nil, err
+	}
 
 	list := make(domain.VehicleList, 0, len(vehicles))
 
