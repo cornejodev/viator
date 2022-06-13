@@ -1,6 +1,9 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var ErrVehicleCantBeEmpty = errors.New("the vehicle fields can't be empty")
 var ErrVehicleNotFound = errors.New("vehicle not found")
@@ -14,6 +17,8 @@ type Vehicle struct {
 	Model             string
 	Year              int
 	Mileage           int
+
+	CreatedAt time.Time
 }
 
 type AddVehicleForm struct {
@@ -25,6 +30,18 @@ type AddVehicleForm struct {
 	Year              int    `json:"year"`
 	Mileage           int    `json:"mileage"`
 }
+
+// maybe will be needed
+// type VehicleDTO struct {
+// 	ID                int    `json:"id"`
+// 	Type              string `json:"type"`
+// 	LicensePlate      string `json:"licensePlate"`
+// 	PassengerCapacity int    `json:"passengerCapacity"`
+// 	Model             string `json:"model"`
+// 	Make              string `json:"make"`
+// 	Year              int    `json:"year"`
+// 	Mileage           int    `json:"mileage"`
+// }
 
 func (v Vehicle) CheckEmptyFields() error {
 	if v.Type == "" ||

@@ -21,7 +21,7 @@ func New(dbcfg config.Database) *storage {
 	return &storage{dbcfg}
 }
 
-func (s storage) ProvideRepository() (*Repository, error) {
+func (s *storage) ProvideRepository() (*Repository, error) {
 	var err error
 	var db *sql.DB
 
@@ -41,4 +41,5 @@ type Repository struct {
 
 type VehicleRepository interface {
 	Create(vehicle *domain.Vehicle) error
+	ByID(id int) (*domain.Vehicle, error)
 }

@@ -7,6 +7,7 @@ import (
 
 type DepotService interface {
 	Add(v *domain.Vehicle) error
+	Find(id int) (*domain.Vehicle, error)
 }
 
 type depotService struct {
@@ -22,4 +23,11 @@ func (ds *depotService) Add(v *domain.Vehicle) error {
 		return err
 	}
 	return ds.repo.Create(v)
+}
+
+func (ds *depotService) Find(id int) (*domain.Vehicle, error) {
+	if id == 0 {
+		return &domain.Vehicle{}, domain.ErrVehicleNotFound
+	}
+	return ds.repo.ByID(id)
 }

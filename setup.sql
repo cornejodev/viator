@@ -8,5 +8,6 @@ CREATE TABLE IF NOT EXISTS vehicle (
 	make VARCHAR(255) NOT NULL,
 	model VARCHAR(255) NOT NULL,
 	year INT NOT NULL,
-	mileage INT NOT NULL
+	mileage INT NOT NULL,
+        created_at TIMESTAMP
 );
