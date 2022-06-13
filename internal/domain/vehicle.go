@@ -1,6 +1,9 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var ErrVehicleCantBeEmpty = errors.New("the vehicle fields can't be empty")
 var ErrVehicleNotFound = errors.New("vehicle not found")
@@ -14,6 +17,7 @@ type Vehicle struct {
 	Model             string
 	Year              int
 	Mileage           int
+	CreationDate      time.Time // field relevant for db
 }
 
 type AddVehicleForm struct {
@@ -26,7 +30,19 @@ type AddVehicleForm struct {
 	Mileage           int    `json:"mileage"`
 }
 
-func (v Vehicle) CheckEmptyFields() error {
+// returns only fields that are relevant to client
+type VehicleCard struct {
+	ID                int    `json:"id"`
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
+}
+
+func (v *AddVehicleForm) CheckEmptyFields() error {
 	if v.Type == "" ||
 		v.LicensePlate == "" ||
 		v.PassengerCapacity == 0 ||
@@ -39,6 +55,8 @@ func (v Vehicle) CheckEmptyFields() error {
 	}
 	return nil
 }
+
+type VehicleList []VehicleCard
 
 /*
 Types of vehicles
