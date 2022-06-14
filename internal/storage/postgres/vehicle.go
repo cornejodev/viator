@@ -19,10 +19,23 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 }
 
 func (r *VehicleRepository) Create(v domain.Vehicle) error {
-	stmt, err := r.db.Prepare(
-		`INSERT INTO vehicle (type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-	RETURNING id`)
+	stmt, err := r.db.Prepare(`
+	INSERT INTO 
+		vehicle(
+			type, 
+			license_plate, 
+			passenger_capacity, 
+			make, 
+			model, 
+			year, 
+			mileage, 
+			created_at,
+			updated_at
+		) 
+	VALUES 
+		($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+	RETURNING id
+	`)
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
 		return err
@@ -57,10 +70,23 @@ func (r *VehicleRepository) Create(v domain.Vehicle) error {
 func (r *VehicleRepository) ByID(id int) (domain.Vehicle, error) {
 	var v domain.Vehicle
 
-	stmt, err := r.db.Prepare(
-		`SELECT id, type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at
-	FROM vehicle 
-	WHERE id = $1`)
+	stmt, err := r.db.Prepare(`
+	SELECT 
+		id, 
+		type, 
+		license_plate, 
+		passenger_capacity, 
+		make, 
+		model, 
+		year, 
+		mileage, 
+		created_at, 
+		updated_at
+	FROM 
+		vehicle 
+	WHERE 
+		id = $1
+	`)
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
 		return domain.Vehicle{}, err
@@ -139,8 +165,9 @@ func (r *VehicleRepository) All() ([]domain.Vehicle, error) {
 }
 
 func (r *VehicleRepository) Update(v domain.Vehicle) error {
-	stmt, err := r.db.Prepare(
-		`UPDATE vehicle 
+	stmt, err := r.db.Prepare(`
+	UPDATE 
+		vehicle 
 	SET 
 		type = $1, 
 		license_plate = $2, 
@@ -151,7 +178,8 @@ func (r *VehicleRepository) Update(v domain.Vehicle) error {
 		mileage = $7,
 		updated_at = $8 
 	WHERE 
-		id = $9`)
+		id = $9
+	`)
 	if err != nil {
 		return err
 	}
