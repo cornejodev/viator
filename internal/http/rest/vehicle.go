@@ -21,7 +21,7 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		err := s.Depot.Add(&form)
+		err := s.Depot.Add(form)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Incorrect or empty parameters in fields", http.StatusBadRequest)
@@ -81,7 +81,8 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		form := domain.UpdateVehicleForm{}
+		var form domain.UpdateVehicleForm
+
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&form); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

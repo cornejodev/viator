@@ -8,8 +8,8 @@ import (
 )
 
 type DepotService interface {
-	Add(f *domain.AddVehicleForm) error
-	Find(id int) (*domain.VehicleCard, error)
+	Add(f domain.AddVehicleForm) error
+	Find(id int) (domain.VehicleCard, error)
 	List() (domain.VehicleList, error)
 	Update(f domain.UpdateVehicleForm) error
 }
@@ -22,11 +22,11 @@ func NewDepotService(repo storage.VehicleRepository) DepotService {
 	return &depotService{repo}
 }
 
-func (ds *depotService) Add(f *domain.AddVehicleForm) error {
+func (ds *depotService) Add(f domain.AddVehicleForm) error {
 	if err := f.CheckEmptyFields(); err != nil {
 		return err
 	}
-	v := &domain.Vehicle{
+	v := domain.Vehicle{
 		Type:              f.Type,
 		LicensePlate:      f.LicensePlate,
 		PassengerCapacity: f.PassengerCapacity,
@@ -36,19 +36,20 @@ func (ds *depotService) Add(f *domain.AddVehicleForm) error {
 		Mileage:           f.Mileage,
 	}
 	return ds.repo.Create(v)
+
 }
 
-func (ds *depotService) Find(id int) (*domain.VehicleCard, error) {
+func (ds *depotService) Find(id int) (domain.VehicleCard, error) {
 	if id == 0 {
-		return nil, domain.ErrVehicleNotFound
+		return domain.VehicleCard{}, domain.ErrVehicleNotFound
 	}
 
 	v, err := ds.repo.ByID(id)
 	if err != nil {
-		return nil, err
+		return domain.VehicleCard{}, err
 	}
 
-	vc := &domain.VehicleCard{
+	vc := domain.VehicleCard{
 		ID:                v.ID,
 		Type:              v.Type,
 		LicensePlate:      v.LicensePlate,
@@ -70,7 +71,7 @@ func (ds *depotService) List() (domain.VehicleList, error) {
 
 	list := make(domain.VehicleList, 0, len(vehicles))
 
-	assemble := func(v *domain.Vehicle) domain.VehicleCard {
+	assemble := func(v domain.Vehicle) domain.VehicleCard {
 		return domain.VehicleCard{
 			ID:                v.ID,
 			Type:              v.Type,
@@ -111,7 +112,7 @@ func (ds *depotService) Update(f domain.UpdateVehicleForm) error {
 		return err
 	}
 
-	// vc := &domain.VehicleCard{
+	// vc := domain.VehicleCard{
 	// 	ID:                v.ID,
 	// 	Type:              v.Type,
 	// 	LicensePlate:      v.LicensePlate,

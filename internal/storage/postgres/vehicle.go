@@ -18,7 +18,7 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 	}
 }
 
-func (r *VehicleRepository) Create(v *domain.Vehicle) error {
+func (r *VehicleRepository) Create(v domain.Vehicle) error {
 	stmt, err := r.db.Prepare(
 		`INSERT INTO vehicle (type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
@@ -31,7 +31,7 @@ func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 
 	v.CreatedAt = time.Now()
 	v.UpdatedAt = time.Now()
-	// cant use Exec() and then LAstInsertId with lib/pq driver because postgres
+	// cant use Exec() and then LastInsertId with lib/pq driver because postgres
 	// doesn't automatically return the last insert id. Therefore we use QueryRow instead
 	err = stmt.QueryRow(
 		v.Type,
@@ -54,8 +54,8 @@ func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 	return nil
 }
 
-func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
-	v := &domain.Vehicle{}
+func (r *VehicleRepository) ByID(id int) (domain.Vehicle, error) {
+	var v domain.Vehicle
 
 	stmt, err := r.db.Prepare(
 		`SELECT id, type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at
@@ -63,7 +63,7 @@ func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 	WHERE id = $1`)
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
-		return nil, err
+		return domain.Vehicle{}, err
 	}
 	defer stmt.Close()
 
@@ -82,17 +82,17 @@ func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("error while trying to fetch vehicle: ", err)
-			return nil, err
+			return domain.Vehicle{}, err
 		} else {
 			log.Println("error while trying to fetch vehicle: ", err)
-			return nil, err
+			return domain.Vehicle{}, err
 
 		}
 	}
 	return v, nil
 }
 
-func (r *VehicleRepository) All() ([]*domain.Vehicle, error) {
+func (r *VehicleRepository) All() ([]domain.Vehicle, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM vehicle")
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
@@ -107,9 +107,9 @@ func (r *VehicleRepository) All() ([]*domain.Vehicle, error) {
 	}
 	defer rows.Close()
 
-	vehicles := make([]*domain.Vehicle, 0)
+	vehicles := make([]domain.Vehicle, 0)
 	for rows.Next() {
-		v := &domain.Vehicle{}
+		var v domain.Vehicle
 
 		err := rows.Scan(
 			&v.ID,
