@@ -65,7 +65,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 		return err
 	}
 
-	log.Println("New record added. Record ID is:", v.ID)
+	log.Printf("New vehicle added. Vehicle ID is: %d", v.ID)
 
 	return nil
 }
@@ -217,6 +217,8 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 		return errs.ErrVehicleNotFound
 	}
 
+	log.Printf("Vehicle with ID: %d has been modified", v.ID)
+
 	return nil
 }
 
@@ -242,7 +244,7 @@ func (r *VehicleRepository) Delete(id int) error {
 		return errs.ErrVehicleNotFound
 	}
 
-	log.Printf("Product with ID %d removed from DB", id)
+	log.Printf("Vehicle with ID: %d removed from DB", id)
 
 	return nil
 }
