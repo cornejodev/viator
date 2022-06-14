@@ -44,6 +44,7 @@ func (r *VehicleRepository) Create(v domain.Vehicle) error {
 
 	v.CreatedAt = time.Now()
 	v.UpdatedAt = time.Now()
+
 	// cant use Exec() and then LastInsertId with lib/pq driver because postgres
 	// doesn't automatically return the last insert id. Therefore we use QueryRow instead
 	err = stmt.QueryRow(
@@ -210,6 +211,32 @@ func (r *VehicleRepository) Update(v domain.Vehicle) error {
 	if rows == 0 {
 		return domain.ErrVehicleNotFound
 	}
+
+	return nil
+}
+
+func (r *VehicleRepository) Delete(id int) error {
+	stmt, err := r.db.Prepare("DELETE FROM vehicle WHERE id = $1")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return domain.ErrVehicleNotFound
+	}
+
+	log.Printf("Product with ID %d removed from DB", id)
 
 	return nil
 }

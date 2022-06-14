@@ -105,3 +105,28 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		json.NewEncoder(w).Encode("Vehicle updated!")
 	}
 }
+
+func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		id, err := strconv.Atoi(params["id"])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Depot.Remove(id)
+		if err != nil {
+			if err == domain.ErrVehicleNotFound {
+				http.Error(w, "Vehicle requested doesn't exist.", http.StatusBadRequest)
+				return
+			}
+			log.Println(err)
+			http.Error(w, "An error has ocurred. Unable to delete vehicle.", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode("Vehicle deleted!")
+	}
+}

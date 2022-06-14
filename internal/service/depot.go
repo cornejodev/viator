@@ -12,6 +12,7 @@ type DepotService interface {
 	Find(id int) (domain.VehicleCard, error)
 	List() (domain.VehicleList, error)
 	Update(f domain.UpdateVehicleForm) error
+	Remove(id int) error
 }
 
 type depotService struct {
@@ -124,4 +125,8 @@ func (ds *depotService) Update(f domain.UpdateVehicleForm) error {
 	// }
 
 	return nil
+}
+
+func (ds *depotService) Remove(id int) error {
+	return ds.repo.Delete(id)
 }
