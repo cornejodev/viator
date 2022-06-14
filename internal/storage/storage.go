@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cornejodev/viator/config"
-	"github.com/cornejodev/viator/internal/domain"
+	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage/postgres"
 )
 
@@ -40,9 +40,9 @@ type Repository struct {
 }
 
 type VehicleRepository interface {
-	Create(v domain.Vehicle) error
-	ByID(id int) (domain.Vehicle, error)
-	All() ([]domain.Vehicle, error)
-	Update(v domain.Vehicle) error
+	Create(v vehicle.Vehicle) error
+	ByID(id int) (vehicle.Vehicle, error)
+	All() ([]vehicle.Vehicle, error)
+	Update(v vehicle.Vehicle) error
 	Delete(id int) error
 }

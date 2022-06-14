@@ -6,22 +6,22 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cornejodev/viator/internal/domain"
+	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/gorilla/mux"
 )
 
 func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var form domain.AddVehicleForm
+		var rb service.AddVehicleRequest
 
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&form); err != nil {
+		if err := decoder.Decode(&rb); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		err := s.Depot.Add(form)
+		err := s.Depot.Add(rb)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Incorrect or empty parameters in fields", http.StatusBadRequest)
@@ -81,21 +81,21 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		var form domain.UpdateVehicleForm
+		var rb service.UpdateVehicleRequest
 
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&form); err != nil {
+		if err := decoder.Decode(&rb); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		// the id in the uri and request body must be the same
-		if id != form.ID {
+		if id != rb.ID {
 			http.Error(w, "Route variable and request body IDs do not match.", http.StatusBadRequest)
 			return
 		}
 
-		err = s.Depot.Update(form)
+		err = s.Depot.Update(rb)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "An error has ocurred. Unable to update vehicle.", http.StatusInternalServerError)
@@ -117,7 +117,7 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		err = s.Depot.Remove(id)
 		if err != nil {
-			if err == domain.ErrVehicleNotFound {
+			if err == errs.ErrVehicleNotFound {
 				http.Error(w, "Vehicle requested doesn't exist.", http.StatusBadRequest)
 				return
 			}

@@ -3,15 +3,16 @@ package service
 import (
 	"log"
 
-	"github.com/cornejodev/viator/internal/domain"
+	"github.com/cornejodev/viator/internal/domain/errs"
+	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage"
 )
 
 type DepotService interface {
-	Add(f domain.AddVehicleForm) error
-	Find(id int) (domain.VehicleCard, error)
-	List() (domain.VehicleList, error)
-	Update(f domain.UpdateVehicleForm) error
+	Add(f AddVehicleRequest) error
+	Find(id int) (VehicleResponse, error)
+	List() ([]VehicleResponse, error)
+	Update(f UpdateVehicleRequest) error
 	Remove(id int) error
 }
 
@@ -23,34 +24,77 @@ func NewDepotService(repo storage.VehicleRepository) DepotService {
 	return &depotService{repo}
 }
 
-func (ds *depotService) Add(f domain.AddVehicleForm) error {
-	if err := f.CheckEmptyFields(); err != nil {
-		return err
-	}
-	v := domain.Vehicle{
-		Type:              f.Type,
-		LicensePlate:      f.LicensePlate,
-		PassengerCapacity: f.PassengerCapacity,
-		Make:              f.Make,
-		Model:             f.Model,
-		Year:              f.Year,
-		Mileage:           f.Mileage,
-	}
-	return ds.repo.Create(v)
-
+// AddVehicle is the request struct for adding a vehicle
+type AddVehicleRequest struct {
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
 }
 
-func (ds *depotService) Find(id int) (domain.VehicleCard, error) {
+// UpdateVehicleRequest is the request struct for updating a vehicle
+type UpdateVehicleRequest struct {
+	ID                int    `json:"id"`
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
+}
+
+// returns only fields that are relevant to client
+type VehicleResponse struct {
+	ID                int    `json:"id"`
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
+}
+
+// Add is used to add a vehicle
+func (ds *depotService) Add(rb AddVehicleRequest) error {
+	v := vehicle.Vehicle{
+		Type:              rb.Type,
+		LicensePlate:      rb.LicensePlate,
+		PassengerCapacity: rb.PassengerCapacity,
+		Make:              rb.Make,
+		Model:             rb.Model,
+		Year:              rb.Year,
+		Mileage:           rb.Mileage,
+	}
+
+	if err := v.IsValid(); err != nil {
+		return err
+	}
+
+	if err := ds.repo.Create(v); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+// Find is used to find a vehicle by ID
+func (ds *depotService) Find(id int) (VehicleResponse, error) {
 	if id == 0 {
-		return domain.VehicleCard{}, domain.ErrVehicleNotFound
+		return VehicleResponse{}, errs.ErrVehicleNotFound
 	}
 
 	v, err := ds.repo.ByID(id)
 	if err != nil {
-		return domain.VehicleCard{}, err
+		return VehicleResponse{}, err
 	}
 
-	vc := domain.VehicleCard{
+	vr := VehicleResponse{
 		ID:                v.ID,
 		Type:              v.Type,
 		LicensePlate:      v.LicensePlate,
@@ -61,19 +105,20 @@ func (ds *depotService) Find(id int) (domain.VehicleCard, error) {
 		Mileage:           v.Mileage,
 	}
 
-	return vc, nil
+	return vr, nil
 }
 
-func (ds *depotService) List() (domain.VehicleList, error) {
+// List is used to list all the vehicles in depot
+func (ds *depotService) List() ([]VehicleResponse, error) {
 	vehicles, err := ds.repo.All()
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(domain.VehicleList, 0, len(vehicles))
+	list := make([]VehicleResponse, 0, len(vehicles))
 
-	assemble := func(v domain.Vehicle) domain.VehicleCard {
-		return domain.VehicleCard{
+	assemble := func(v vehicle.Vehicle) VehicleResponse {
+		return VehicleResponse{
 			ID:                v.ID,
 			Type:              v.Type,
 			LicensePlate:      v.LicensePlate,
@@ -92,41 +137,33 @@ func (ds *depotService) List() (domain.VehicleList, error) {
 
 }
 
-func (ds *depotService) Update(f domain.UpdateVehicleForm) error {
-	if err := f.CheckEmptyFields(); err != nil {
-		log.Println("Error while trying to update vehicle:", err)
+// Update is used to update a vehicle
+func (ds *depotService) Update(rb UpdateVehicleRequest) error {
+	v := vehicle.Vehicle{
+		Type:              rb.Type,
+		LicensePlate:      rb.LicensePlate,
+		PassengerCapacity: rb.PassengerCapacity,
+		Make:              rb.Make,
+		Model:             rb.Model,
+		Year:              rb.Year,
+		Mileage:           rb.Mileage,
+	}
+
+	if err := v.IsValid(); err != nil {
 		return err
 	}
 
-	err := ds.repo.Update(domain.Vehicle{
-		ID:                f.ID,
-		Type:              f.Type,
-		LicensePlate:      f.LicensePlate,
-		PassengerCapacity: f.PassengerCapacity,
-		Make:              f.Make,
-		Model:             f.Model,
-		Year:              f.Year,
-		Mileage:           f.Mileage,
-	})
-	if err != nil {
+	v.ID = rb.ID
+
+	if err := ds.repo.Update(v); err != nil {
 		log.Println(err)
 		return err
 	}
 
-	// vc := domain.VehicleCard{
-	// 	ID:                v.ID,
-	// 	Type:              v.Type,
-	// 	LicensePlate:      v.LicensePlate,
-	// 	PassengerCapacity: v.PassengerCapacity,
-	// 	Model:             v.Model,
-	// 	Make:              v.Make,
-	// 	Year:              v.Year,
-	// 	Mileage:           v.Mileage,
-	// }
-
 	return nil
 }
 
+// Remove is used to remove a vehicle
 func (ds *depotService) Remove(id int) error {
 	return ds.repo.Delete(id)
 }

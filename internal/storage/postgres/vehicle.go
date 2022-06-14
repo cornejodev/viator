@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/cornejodev/viator/internal/domain"
+	"github.com/cornejodev/viator/internal/domain/errs"
+	"github.com/cornejodev/viator/internal/domain/vehicle"
 )
 
 type VehicleRepository struct {
@@ -18,7 +19,8 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 	}
 }
 
-func (r *VehicleRepository) Create(v domain.Vehicle) error {
+// Create is used to create a vehicle in the database
+func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 	stmt, err := r.db.Prepare(`
 	INSERT INTO 
 		vehicle(
@@ -68,8 +70,9 @@ func (r *VehicleRepository) Create(v domain.Vehicle) error {
 	return nil
 }
 
-func (r *VehicleRepository) ByID(id int) (domain.Vehicle, error) {
-	var v domain.Vehicle
+// ByID is used to find a vehicle in database via it's ID. It returns a Vehicle struct to the caller
+func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
+	var v vehicle.Vehicle
 
 	stmt, err := r.db.Prepare(`
 	SELECT 
@@ -90,7 +93,7 @@ func (r *VehicleRepository) ByID(id int) (domain.Vehicle, error) {
 	`)
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
-		return domain.Vehicle{}, err
+		return vehicle.Vehicle{}, err
 	}
 	defer stmt.Close()
 
@@ -109,17 +112,18 @@ func (r *VehicleRepository) ByID(id int) (domain.Vehicle, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("error while trying to fetch vehicle: ", err)
-			return domain.Vehicle{}, err
+			return vehicle.Vehicle{}, err
 		} else {
 			log.Println("error while trying to fetch vehicle: ", err)
-			return domain.Vehicle{}, err
+			return vehicle.Vehicle{}, err
 
 		}
 	}
 	return v, nil
 }
 
-func (r *VehicleRepository) All() ([]domain.Vehicle, error) {
+// All returns all the vehicles stored in database. It returns  a slice of Vehicle structs
+func (r *VehicleRepository) All() ([]vehicle.Vehicle, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM vehicle")
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
@@ -134,9 +138,9 @@ func (r *VehicleRepository) All() ([]domain.Vehicle, error) {
 	}
 	defer rows.Close()
 
-	vehicles := make([]domain.Vehicle, 0)
+	vehicles := make([]vehicle.Vehicle, 0)
 	for rows.Next() {
-		var v domain.Vehicle
+		var v vehicle.Vehicle
 
 		err := rows.Scan(
 			&v.ID,
@@ -165,7 +169,8 @@ func (r *VehicleRepository) All() ([]domain.Vehicle, error) {
 	return vehicles, nil
 }
 
-func (r *VehicleRepository) Update(v domain.Vehicle) error {
+// Update is used to update a vehicle in the database
+func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 	stmt, err := r.db.Prepare(`
 	UPDATE 
 		vehicle 
@@ -209,12 +214,13 @@ func (r *VehicleRepository) Update(v domain.Vehicle) error {
 	}
 
 	if rows == 0 {
-		return domain.ErrVehicleNotFound
+		return errs.ErrVehicleNotFound
 	}
 
 	return nil
 }
 
+// Delete is used to delete a vehicle in the database
 func (r *VehicleRepository) Delete(id int) error {
 	stmt, err := r.db.Prepare("DELETE FROM vehicle WHERE id = $1")
 	if err != nil {
@@ -233,7 +239,7 @@ func (r *VehicleRepository) Delete(id int) error {
 	}
 
 	if rows == 0 {
-		return domain.ErrVehicleNotFound
+		return errs.ErrVehicleNotFound
 	}
 
 	log.Printf("Product with ID %d removed from DB", id)
