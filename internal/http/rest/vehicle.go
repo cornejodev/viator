@@ -71,3 +71,36 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 		json.NewEncoder(w).Encode(vehicles)
 	}
 }
+
+func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		id, err := strconv.Atoi(params["id"])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		form := domain.UpdateVehicleForm{}
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&form); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// the id in the uri and request body must be the same
+		if id != form.ID {
+			http.Error(w, "Route variable and request body IDs do not match.", http.StatusBadRequest)
+			return
+		}
+
+		err = s.Depot.Update(form)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "An error has ocurred. Unable to update vehicle.", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode("Vehicle updated!")
+	}
+}

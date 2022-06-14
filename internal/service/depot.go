@@ -1,6 +1,8 @@
 package service
 
 import (
+	"log"
+
 	"github.com/cornejodev/viator/internal/domain"
 	"github.com/cornejodev/viator/internal/storage"
 )
@@ -9,6 +11,7 @@ type DepotService interface {
 	Add(f *domain.AddVehicleForm) error
 	Find(id int) (*domain.VehicleCard, error)
 	List() (domain.VehicleList, error)
+	Update(f domain.UpdateVehicleForm) error
 }
 
 type depotService struct {
@@ -85,4 +88,39 @@ func (ds *depotService) List() (domain.VehicleList, error) {
 	}
 	return list, nil
 
+}
+
+func (ds *depotService) Update(f domain.UpdateVehicleForm) error {
+	if err := f.CheckEmptyFields(); err != nil {
+		log.Println("Error while trying to update vehicle:", err)
+		return err
+	}
+
+	err := ds.repo.Update(domain.Vehicle{
+		ID:                f.ID,
+		Type:              f.Type,
+		LicensePlate:      f.LicensePlate,
+		PassengerCapacity: f.PassengerCapacity,
+		Make:              f.Make,
+		Model:             f.Model,
+		Year:              f.Year,
+		Mileage:           f.Mileage,
+	})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// vc := &domain.VehicleCard{
+	// 	ID:                v.ID,
+	// 	Type:              v.Type,
+	// 	LicensePlate:      v.LicensePlate,
+	// 	PassengerCapacity: v.PassengerCapacity,
+	// 	Model:             v.Model,
+	// 	Make:              v.Make,
+	// 	Year:              v.Year,
+	// 	Mileage:           v.Mileage,
+	// }
+
+	return nil
 }

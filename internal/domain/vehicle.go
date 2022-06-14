@@ -17,10 +17,22 @@ type Vehicle struct {
 	Model             string
 	Year              int
 	Mileage           int
-	CreationDate      time.Time // field relevant for db
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type AddVehicleForm struct {
+	Type              string `json:"type"`
+	LicensePlate      string `json:"licensePlate"`
+	PassengerCapacity int    `json:"passengerCapacity"`
+	Model             string `json:"model"`
+	Make              string `json:"make"`
+	Year              int    `json:"year"`
+	Mileage           int    `json:"mileage"`
+}
+
+type UpdateVehicleForm struct {
+	ID                int    `json:"id"`
 	Type              string `json:"type"`
 	LicensePlate      string `json:"licensePlate"`
 	PassengerCapacity int    `json:"passengerCapacity"`
@@ -42,14 +54,29 @@ type VehicleCard struct {
 	Mileage           int    `json:"mileage"`
 }
 
-func (v *AddVehicleForm) CheckEmptyFields() error {
-	if v.Type == "" ||
-		v.LicensePlate == "" ||
-		v.PassengerCapacity == 0 ||
-		v.Model == "" ||
-		v.Make == "" ||
-		v.Year == 0 ||
-		v.Mileage == 0 {
+func (f *AddVehicleForm) CheckEmptyFields() error {
+	if f.Type == "" ||
+		f.LicensePlate == "" ||
+		f.PassengerCapacity == 0 ||
+		f.Model == "" ||
+		f.Make == "" ||
+		f.Year == 0 ||
+		f.Mileage == 0 {
+
+		return ErrVehicleCantBeEmpty
+	}
+	return nil
+}
+
+func (f *UpdateVehicleForm) CheckEmptyFields() error {
+	if f.ID == 0 ||
+		f.Type == "" ||
+		f.LicensePlate == "" ||
+		f.PassengerCapacity == 0 ||
+		f.Model == "" ||
+		f.Make == "" ||
+		f.Year == 0 ||
+		f.Mileage == 0 {
 
 		return ErrVehicleCantBeEmpty
 	}
