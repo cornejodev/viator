@@ -20,8 +20,8 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 
 func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 	stmt, err := r.db.Prepare(
-		`INSERT INTO vehicle (type, license_plate, passenger_capacity, make, model, year, mileage, created_at) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		`INSERT INTO vehicle (type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 	RETURNING id`)
 	if err != nil {
 		log.Println("error while preparing statement: ", err)
@@ -30,6 +30,7 @@ func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 	defer stmt.Close()
 
 	v.CreatedAt = time.Now()
+	v.UpdatedAt = time.Now()
 	// cant use Exec() and then LAstInsertId with lib/pq driver because postgres
 	// doesn't automatically return the last insert id. Therefore we use QueryRow instead
 	err = stmt.QueryRow(
@@ -41,6 +42,7 @@ func (r *VehicleRepository) Create(v *domain.Vehicle) error {
 		v.Year,
 		v.Mileage,
 		v.CreatedAt,
+		v.UpdatedAt,
 	).Scan(&v.ID)
 	if err != nil {
 		log.Println("error while trying to create vehicle: ", err)
@@ -56,7 +58,7 @@ func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 	v := &domain.Vehicle{}
 
 	stmt, err := r.db.Prepare(
-		`SELECT id, type, license_plate, passenger_capacity, make, model, year, mileage, created_at
+		`SELECT id, type, license_plate, passenger_capacity, make, model, year, mileage, created_at, updated_at
 	FROM vehicle 
 	WHERE id = $1`)
 	if err != nil {
@@ -75,6 +77,7 @@ func (r *VehicleRepository) ByID(id int) (*domain.Vehicle, error) {
 		&v.Year,
 		&v.Mileage,
 		&v.CreatedAt,
+		&v.UpdatedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -106,7 +109,6 @@ func (r *VehicleRepository) All() ([]*domain.Vehicle, error) {
 
 	vehicles := make([]*domain.Vehicle, 0)
 	for rows.Next() {
-		var updatedAtNull sql.NullTime
 		v := &domain.Vehicle{}
 
 		err := rows.Scan(
@@ -119,13 +121,12 @@ func (r *VehicleRepository) All() ([]*domain.Vehicle, error) {
 			&v.Year,
 			&v.Mileage,
 			&v.CreatedAt,
-			&updatedAtNull,
+			&v.UpdatedAt,
 		)
 		if err != nil {
 			log.Println("error while trying to fetch vehicles: ", err)
 			return vehicles, err
 		}
-		v.UpdatedAt = updatedAtNull.Time
 
 		vehicles = append(vehicles, v)
 	}
@@ -166,8 +167,9 @@ func (r *VehicleRepository) Update(v domain.Vehicle) error {
 		v.Model,
 		v.Year,
 		v.Mileage,
-		timeToNull(v.UpdatedAt),
-		v.ID)
+		v.UpdatedAt,
+		v.ID,
+	)
 	if err != nil {
 		return err
 	}
@@ -182,14 +184,4 @@ func (r *VehicleRepository) Update(v domain.Vehicle) error {
 	}
 
 	return nil
-}
-
-// timeToNull helper to try empty time fields.
-func timeToNull(t time.Time) sql.NullTime {
-	null := sql.NullTime{Time: t}
-
-	if !null.Time.IsZero() {
-		null.Valid = true
-	}
-	return null
 }
