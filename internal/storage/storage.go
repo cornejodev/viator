@@ -44,4 +44,5 @@ type VehicleRepository interface {
 	ByID(id int) (domain.Vehicle, error)
 	All() ([]domain.Vehicle, error)
 	Update(v domain.Vehicle) error
+	Delete(id int) error
 }

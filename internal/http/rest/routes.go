@@ -14,6 +14,7 @@ func Handler(s service.Service) http.Handler {
 	r.HandleFunc("/vehicles", listVehicles(s)).Methods("GET")
 	r.HandleFunc("/vehicles/{id}", getVehicle(s)).Methods("GET")
 	r.HandleFunc("/vehicles/{id}", updateVehicle(s)).Methods("POST")
+	r.HandleFunc("/vehicles/{id}", deleteVehicle(s)).Methods("DELETE")
 
 	return r
 }
