@@ -24,7 +24,7 @@ func NewDepotService(repo storage.VehicleRepository) DepotService {
 	return &depotService{repo}
 }
 
-// AddVehicle is the request struct for adding a vehicle
+// AddVehicleRequest is the request struct for adding a vehicle
 type AddVehicleRequest struct {
 	Type              string `json:"type"`
 	LicensePlate      string `json:"licensePlate"`
@@ -47,7 +47,7 @@ type UpdateVehicleRequest struct {
 	Mileage           int    `json:"mileage"`
 }
 
-// returns only fields that are relevant to client
+// VehicleResponse returns a response struct containing fields that are relevant to client
 type VehicleResponse struct {
 	ID                int    `json:"id"`
 	Type              string `json:"type"`
