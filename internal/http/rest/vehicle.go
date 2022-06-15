@@ -17,19 +17,22 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		err := s.Depot.Add(rb)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Incorrect or empty parameters in fields", http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode("Vehicle added!")
+		resp := newResponse(msgOK, "Vehicle added!", nil)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 
@@ -38,19 +41,22 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "An error has ocurred. Unable to fetch vehicle.", http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, "Unable to fetch vehicle.", nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(v)
+		resp := newResponse(msgOK, "", v)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 
@@ -59,16 +65,19 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 		vehicles, err := s.Depot.List()
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "An error has ocurred. Unable to fetch vehicles.", http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, "Unable to fetch vehicle.", nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 		if len(vehicles) == 0 {
-			http.Error(w, "Currently no vehicles in depot.", http.StatusOK)
+			resp, _ := json.Marshal(newResponse(msgErr, "Currently no vehicles in depot.", nil))
+			http.Error(w, string(resp), http.StatusOK)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(vehicles)
+		resp := newResponse(msgOK, "", vehicles)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 
@@ -77,7 +86,8 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
@@ -85,24 +95,29 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		// the id in the uri and request body must be the same
 		if id != rb.ID {
-			http.Error(w, "Route variable and request body IDs do not match.", http.StatusBadRequest)
+			resp, _ := json.Marshal(newResponse(msgErr, "Route variable and request body IDs do not match.", nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 			return
 		}
 
 		err = s.Depot.Update(rb)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "An error has ocurred. Unable to update vehicle.", http.StatusInternalServerError)
+			resp, _ := json.Marshal(newResponse(msgErr, "Unable to fetch vehicle.", nil))
+			http.Error(w, string(resp), http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode("Vehicle updated!")
+		resp := newResponse(msgOK, "Vehicle updated", nil)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 
@@ -111,22 +126,25 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
+			http.Error(w, string(resp), http.StatusBadRequest)
 		}
 
 		err = s.Depot.Remove(id)
 		if err != nil {
 			if err == errs.ErrVehicleNotFound {
-				http.Error(w, "Vehicle requested doesn't exist.", http.StatusBadRequest)
+				resp, _ := json.Marshal(newResponse(msgErr, "Vehicle requested doesn't exist.", nil))
+				http.Error(w, string(resp), http.StatusBadRequest)
 				return
 			}
 			log.Println(err)
-			http.Error(w, "An error has ocurred. Unable to delete vehicle.", http.StatusInternalServerError)
+			resp, _ := json.Marshal(newResponse(msgErr, "Unable to delete vehicle.", nil))
+			http.Error(w, string(resp), http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode("Vehicle deleted!")
+		resp := newResponse(msgOK, "Vehicle deleted!", nil)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
