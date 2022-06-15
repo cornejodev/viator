@@ -70,7 +70,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 	return nil
 }
 
-// ByID is used to find a vehicle in database via it's ID. It returns a Vehicle struct to the caller
+// ByID is used to find a vehicle in database via its ID. It returns a Vehicle struct to the caller
 func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 	var v vehicle.Vehicle
 
