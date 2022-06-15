@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/gorilla/mux"
 )
@@ -26,7 +25,7 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			log.Println(err)
 			resp, _ := json.Marshal(newResponse(msgErr, err.Error(), nil))
-			http.Error(w, string(resp), http.StatusBadRequest)
+			http.Error(w, string(resp), http.StatusInternalServerError)
 			return
 		}
 
@@ -50,7 +49,7 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			log.Println(err)
 			resp, _ := json.Marshal(newResponse(msgErr, "Unable to fetch vehicle.", nil))
-			http.Error(w, string(resp), http.StatusBadRequest)
+			http.Error(w, string(resp), http.StatusInternalServerError)
 			return
 		}
 
@@ -66,13 +65,11 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			log.Println(err)
 			resp, _ := json.Marshal(newResponse(msgErr, "Unable to fetch vehicle.", nil))
-			http.Error(w, string(resp), http.StatusBadRequest)
+			http.Error(w, string(resp), http.StatusInternalServerError)
 			return
 		}
 		if len(vehicles) == 0 {
-			resp, _ := json.Marshal(newResponse(msgErr, "Currently no vehicles in depot.", nil))
-			http.Error(w, string(resp), http.StatusOK)
-			return
+			log.Println("Currently no vehicles in depot.")
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -132,11 +129,6 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		err = s.Depot.Remove(id)
 		if err != nil {
-			if err == errs.ErrVehicleNotFound {
-				resp, _ := json.Marshal(newResponse(msgErr, "Vehicle requested doesn't exist.", nil))
-				http.Error(w, string(resp), http.StatusBadRequest)
-				return
-			}
 			log.Println(err)
 			resp, _ := json.Marshal(newResponse(msgErr, "Unable to delete vehicle.", nil))
 			http.Error(w, string(resp), http.StatusInternalServerError)
