@@ -9,10 +9,10 @@ import (
 )
 
 type DepotService interface {
-	Add(f AddVehicleRequest) error
+	Add(rb AddVehicleRequest) error
 	Find(id int) (VehicleResponse, error)
 	List() ([]VehicleResponse, error)
-	Update(f UpdateVehicleRequest) error
+	Update(rb UpdateVehicleRequest) error
 	Remove(id int) error
 }
 
@@ -85,13 +85,14 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 
 // Find is used to find a vehicle by ID
 func (ds *depotService) Find(id int) (VehicleResponse, error) {
+	op := "depotService.Find"
 	if id == 0 {
-		return VehicleResponse{}, errs.ErrVehicleNotFound
+		return VehicleResponse{}, errs.E(errs.Op(op), errs.E("id is 0 wtf bro"), errs.NotExist)
 	}
 
 	v, err := ds.repo.ByID(id)
 	if err != nil {
-		return VehicleResponse{}, err
+		return VehicleResponse{}, errs.E(errs.Op(op), err)
 	}
 
 	vr := VehicleResponse{

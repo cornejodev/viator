@@ -39,3 +39,25 @@ func (v *Vehicle) IsValid() error {
 
 	return nil
 }
+
+// // IsValid performs validation of struct
+// func (v *Vehicle) IsValid() error {
+// 	switch {
+// 	case v.Type == "":
+// 		return errs.E(errs.Validation, errs.Parameter("type"), errs.MissingField("type"))
+// 	case v.LicensePlate == "":
+// 		return errs.E(errs.Validation, errs.Parameter("licensePlate"), errs.MissingField("licensePlate"))
+// 	case v.PassengerCapacity <= 0:
+// 		return errs.E(errs.Validation, errs.Parameter("passengerCapacity"), "passengerCapacity must be greater than zero")
+// 	case v.Model == "":
+// 		return errs.E(errs.Validation, errs.Parameter("model"), errs.MissingField("model"))
+// 	case v.Make == "":
+// 		return errs.E(errs.Validation, errs.Parameter("make"), errs.MissingField("make"))
+// 	case v.Year <= 0:
+// 		return errs.E(errs.Validation, errs.Parameter("year"), "year must be greater than zero")
+// 	case v.Mileage <= 0:
+// 		return errs.E(errs.Validation, errs.Parameter("mileage"), "mileage must be greater than zero")
+// 	}
+
+// 	return nil
+// }

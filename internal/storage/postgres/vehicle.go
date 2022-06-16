@@ -72,6 +72,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 
 // ByID is used to find a vehicle in database via its ID. It returns a Vehicle struct to the caller
 func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
+	op := "VehicleRepository.ByID"
 	var v vehicle.Vehicle
 
 	stmt, err := r.db.Prepare(`
@@ -92,8 +93,8 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 		id = $1
 	`)
 	if err != nil {
-		log.Println("error while preparing statement: ", err)
-		return vehicle.Vehicle{}, err
+		// log.Println("error while preparing statement: ", err)
+		return vehicle.Vehicle{}, errs.E(errs.Op(op), err)
 	}
 	defer stmt.Close()
 
@@ -111,11 +112,11 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("error while trying to fetch vehicle: ", err)
-			return vehicle.Vehicle{}, err
+			// log.Println("error while trying to fetch vehicle: ", err)
+			return vehicle.Vehicle{}, errs.E(errs.Op(op), errs.E(err), errs.NotExist)
 		} else {
-			log.Println("error while trying to fetch vehicle: ", err)
-			return vehicle.Vehicle{}, err
+			// log.Println("error while trying to fetch vehicle: ", err)
+			return vehicle.Vehicle{}, errs.E(errs.Op(op), err)
 
 		}
 	}
