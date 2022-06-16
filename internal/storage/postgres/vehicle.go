@@ -113,7 +113,7 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// log.Println("error while trying to fetch vehicle: ", err)
-			return vehicle.Vehicle{}, errs.E(errs.Op(op), errs.E(err), errs.NotExist)
+			return vehicle.Vehicle{}, errs.E(errs.Op(op), err, errs.NotExist)
 		} else {
 			// log.Println("error while trying to fetch vehicle: ", err)
 			return vehicle.Vehicle{}, errs.E(errs.Op(op), err)
