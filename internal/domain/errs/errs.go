@@ -9,14 +9,10 @@ import (
 var ErrVehicleCantBeEmpty = errors.New("the vehicle fields can't be empty")
 var ErrVehicleNotFound = errors.New("vehicle not found")
 
-// xerrors global var
+// errs global var
 var (
-	_caller bool
+	_caller bool // sets stacktrace
 )
-
-/*======================================================================================================*/
-
-type Kind uint8
 
 // Kinds of errors.
 //
@@ -49,6 +45,85 @@ const (
 	// The error is logged and http.StatusForbidden (403) is sent.
 	Unauthorized
 )
+
+// Kind defines the kind of error this is, mostly for use by systems
+type Kind uint8
+
+// Op is the operation when error happens
+type Op string
+
+// Errors of xerrors
+type Error struct {
+	Err  error
+	Kind Kind
+	Op   Op
+}
+
+// New errors
+func E(v ...interface{}) error {
+	var (
+		e    = &Error{}
+		file string
+		line int
+	)
+
+	// only cal _caller when errs _caller is true
+	if _caller {
+		_, file, line, _ = runtime.Caller(1)
+	}
+
+	for _, arg := range v {
+		switch val := arg.(type) {
+		case Op:
+			e.Op = val
+
+		case string:
+			if _caller {
+				e.Err = fmt.Errorf("%s: %s [file=%s, line=%d]", e.Op, val, file, line)
+				continue
+			}
+
+			e.Err = fmt.Errorf("error executing %s: %s", e.Op, val)
+
+		case Kind:
+			e.Kind = val
+
+		case *Error:
+			val.Op = e.Op
+			// copy the errors
+			e = val
+
+			if _caller {
+				e.Err = fmt.Errorf("error executing %s: [file=%s, line=%d] \n%w", e.Op, file, line, val.Err)
+				continue
+			}
+
+			e.Err = fmt.Errorf("error executing %s: %w", e.Op, val.Err)
+
+		case error:
+			if _caller {
+				e.Err = fmt.Errorf("%s %w [file=%s, line=%d]", e.Op, val, file, line)
+				continue
+			}
+
+			e.Err = fmt.Errorf("error executing %s: %w", e.Op, val)
+
+		default:
+			continue
+		}
+	}
+	return e
+}
+
+// Error return string of error
+func (e *Error) Error() string {
+	return e.Err.Error()
+}
+
+// Unwrap errors
+func (e *Error) Unwrap() error {
+	return e.Err
+}
 
 func (k Kind) String() string {
 	switch k {
@@ -84,112 +159,16 @@ func (k Kind) String() string {
 	return "unknown_error_kind"
 }
 
-/*======================================================================================================*/
-
-// // Kind of errors
-// type Kind int16
-
-// // kind of errors
-// const (
-// 	KindOK Kind = iota
-// 	KindNotFound
-// 	KindBadRequest
-// 	KindUnauthorized
-// 	KindInternalError
-// )
-
-// Op is the operation when error happens
-type Op string
+// Kind of errors
+func KindOf(err error) Kind {
+	var e *Error
+	errors.As(err, &e)
+	return e.Kind
+}
 
 // String  value of Op
 func (op Op) String() string {
 	return string(op)
-}
-
-// Fields of errors
-type Fields map[string]interface{}
-
-// Errors of xerrors
-type Errors struct {
-	Err      error
-	InnerErr error
-	kind     Kind
-	op       Op
-}
-
-// New errors
-func E(v ...interface{}) error {
-	var (
-		xerr = &Errors{}
-		file string
-		line int
-	)
-
-	// only cal _caller when xerrors _caller is true
-	if _caller {
-		_, file, line, _ = runtime.Caller(1)
-	}
-
-	for _, arg := range v {
-		switch val := arg.(type) {
-		case Op:
-			xerr.op = val
-
-		case string:
-			if _caller {
-				xerr.Err = fmt.Errorf("%s: %s: [file=%s, line=%d]", val, xerr.op, file, line)
-				continue
-			}
-			// change 1
-			// 			e.Err = errors.New(arg)
-			// xerr.Err = errors.New(val)
-
-			xerr.Err = fmt.Errorf("%s: %s", xerr.op, val)
-
-		case Kind:
-			xerr.kind = val
-
-		case *Errors:
-			val.op = xerr.op
-			// copy the errors
-			xerr = val
-
-			if _caller {
-				xerr.Err = fmt.Errorf("error executing %s: [file=%s, line=%d] \n%w", xerr.op, file, line, val.Err)
-				continue
-			}
-			// xerr.Err = fmt.Errorf("error executing %s: %w:", xerr.op, val.Err) original
-			xerr.Err = fmt.Errorf("error executing %s: %w", xerr.op, val.Err)
-
-		case error:
-			if _caller {
-				xerr.Err = fmt.Errorf("%w: %s: [file=%s, line=%d]", val, xerr.op, file, line)
-				continue
-			}
-			// xerr.Err = fmt.Errorf("%w %s", val, xerr.op) -- original
-			// xerr.Err = fmt.Errorf("%s", val)
-			xerr.Err = fmt.Errorf("%s %w", xerr.op, val)
-
-		default:
-			continue
-		}
-	}
-	return xerr
-}
-
-// Error return string of error
-func (e *Errors) Error() string {
-	return e.Err.Error()
-}
-
-// Unwrap errors
-func (e *Errors) Unwrap() error {
-	return e.Err
-}
-
-// Kind of errors
-func (e *Errors) Kind() Kind {
-	return e.kind
 }
 
 // Is wrap the errors is
@@ -200,21 +179,6 @@ func Is(err, target error) bool {
 // As wrap the error as
 func As(err error, target interface{}) bool {
 	return errors.As(err, target)
-}
-
-// // Unwrap error
-// func Unwrap(err error) error {
-// 	return errors.Unwrap(err)
-// }
-
-// XUnwrap return errors with xerror package type
-func Unwrap(err error) *Errors {
-	xerr, ok := err.(*Errors)
-	if ok {
-		return xerr
-	}
-
-	return nil
 }
 
 // SetCaller to print the stack-trace of the error

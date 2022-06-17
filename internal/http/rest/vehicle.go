@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -38,31 +37,23 @@ import (
 
 func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		op := "getVehicle"
+		const op errs.Op = "getVehicle"
+
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
-			resp, _ := json.Marshal(newResponse(msgErr, "", err, nil))
-			http.Error(w, string(resp), http.StatusBadRequest)
+			errs.HTTPErrorResponse(w, err)
 			return
 		}
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
-			e := errs.E(errs.Op(op), err)
-			log.Println(e)
+			log.Printf("[ERROR] %v \n", errs.E(op, err))
+			errs.HTTPErrorResponse(w, err)
 
-			// info := errs.XUnwrap(e)
-			// info.Kind()
-			// resp, _ := json.Marshal(newResponse(msgErr, "", err, nil))
-			resp := newResponse(msgErr, "", err, nil)
-			http.Error(w, resp.String(), resp.Code)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		resp := newResponse(msgOK, "", nil, v)
-		json.NewEncoder(w).Encode(resp)
+		JSON(w, http.StatusOK, v)
 	}
 }
 

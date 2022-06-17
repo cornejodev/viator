@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"log"
 
 	"github.com/cornejodev/viator/internal/domain/errs"
@@ -85,14 +86,14 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 
 // Find is used to find a vehicle by ID
 func (ds *depotService) Find(id int) (VehicleResponse, error) {
-	op := "depotService.Find"
+	const op errs.Op = "depotService.Find"
 	if id == 0 {
-		return VehicleResponse{}, errs.E(errs.Op(op), errs.E("id is 0 wtf bro"), errs.NotExist)
+		return VehicleResponse{}, errs.E(op, errors.New("id is 0 wtf bro"), errs.NotExist)
 	}
 
 	v, err := ds.repo.ByID(id)
 	if err != nil {
-		return VehicleResponse{}, errs.E(errs.Op(op), err)
+		return VehicleResponse{}, errs.E(op, err, errs.Database)
 	}
 
 	vr := VehicleResponse{

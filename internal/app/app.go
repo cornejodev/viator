@@ -21,6 +21,8 @@ func Run(cfg *config.Config) error {
 	// Setup HTTP server
 	mux := rest.Handler(*svc)
 
+	// errs.SetCaller(true) // logging stacktrace
+
 	s := &http.Server{
 		Handler:      mux,
 		Addr:         cfg.Port,
