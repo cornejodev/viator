@@ -213,7 +213,7 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 	}
 
 	if rows == 0 {
-		return errs.E(op, err, errs.NotExist)
+		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
 
 	log.Printf("Vehicle with ID: %d has been modified", v.ID)
@@ -242,7 +242,7 @@ func (r *VehicleRepository) Delete(id int) error {
 	}
 
 	if rows == 0 {
-		return errs.E(op, err, errs.NotExist)
+		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
 
 	log.Printf("Vehicle with ID: %d removed from DB", id)
