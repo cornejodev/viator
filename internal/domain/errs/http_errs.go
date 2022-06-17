@@ -17,8 +17,8 @@ type ErrResponse struct {
 // be omitted
 type ServiceError struct {
 	Kind    string `json:"kind,omitempty"`
-	Code    string `json:"code,omitempty"`
 	Param   string `json:"param,omitempty"`
+	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -83,10 +83,10 @@ func newErrResponse(err *Error) ErrResponse {
 		return ErrResponse{
 			Status: "error",
 			Error: ServiceError{
-				Kind: err.Kind.String(),
-				// Code:    string(err.Code),
-				// Param:   string(err.Param),
-				Message: err.Error(),
+				Kind:  err.Kind.String(),
+				Param: string(err.Param),
+				Code:  string(err.Code),
+				// Message: err.Error(),
 			},
 		}
 	}

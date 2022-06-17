@@ -6,9 +6,6 @@ import (
 	"runtime"
 )
 
-var ErrVehicleCantBeEmpty = errors.New("the vehicle fields can't be empty")
-var ErrVehicleNotFound = errors.New("vehicle not found")
-
 // errs global var
 var (
 	_caller bool // sets stacktrace
@@ -21,18 +18,30 @@ var (
 // any items since that will change their values.
 // New items must be added only to the end.
 const (
-	Other          Kind = iota // Unclassified error. This value is not printed in the error message.
-	Invalid                    // Invalid operation for this type of item.
-	IO                         // External I/O error such as network failure.
-	Exist                      // Item already exists.
-	NotExist                   // Item does not exist.
-	Private                    // Information withheld.
-	Internal                   // Internal error or inconsistency.
-	BrokenLink                 // Link target does not exist.
-	Database                   // Error from database.
-	Validation                 // Input validation error.
-	Unanticipated              // Unanticipated error.
-	InvalidRequest             // Invalid Request
+	// Unclassified error. This value is not printed in the error message.
+	Other Kind = iota
+	// Invalid operation for this type of item.
+	Invalid
+	// External I/O error such as network failure.
+	IO
+	// Item already exists.
+	Exist
+	// Item does not exist.
+	NotExist
+	// Information withheld.
+	Private
+	// Internal error or inconsistency.
+	Internal
+	// Link target does not exist.
+	BrokenLink
+	// Error from database.
+	Database
+	// Input validation error.
+	Validation
+	// Unanticipated error.
+	Unanticipated
+	// Invalid Request
+	InvalidRequest
 	// Unauthenticated is used when a request lacks valid authentication credentials.
 	//
 	// For Unauthenticated errors, the response body will be empty.
@@ -52,11 +61,25 @@ type Kind uint8
 // Op is the operation when error happens
 type Op string
 
+// Parameter represents the parameter related to the error.
+type Parameter string
+
+// Code is a human-readable, short representation of the error
+type Code string
+
 // Errors of xerrors
 type Error struct {
-	Err  error
+	// Op represents the caller when error happens
+	Op Op
+	// Kind is the class of error, such as permission failure,
+	// or "Other" if its class is unknown or irrelevant.
 	Kind Kind
-	Op   Op
+	// Param represents the parameter related to the error.
+	Param Parameter
+	// Code is a human-readable, short representation of the error
+	Code Code
+	// The underlying error that triggered this one, if any.
+	Err error
 }
 
 // New errors
@@ -76,7 +99,11 @@ func E(v ...interface{}) error {
 		switch val := arg.(type) {
 		case Op:
 			e.Op = val
-
+		case Code:
+			e.Code = val
+			e.Err = fmt.Errorf("error executing %s: %s", e.Op, val)
+		case Parameter:
+			e.Param = val
 		case string:
 			if _caller {
 				e.Err = fmt.Errorf("%s: %s [file=%s, line=%d]", e.Op, val, file, line)

@@ -24,6 +24,7 @@ func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	// Write Content-Type headers
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+
 	// Write HTTP Statuscode
 	w.WriteHeader(statusCode)
 

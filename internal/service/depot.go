@@ -1,9 +1,6 @@
 package service
 
 import (
-	"errors"
-	"log"
-
 	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage"
@@ -62,6 +59,8 @@ type VehicleResponse struct {
 
 // Add is used to add a vehicle
 func (ds *depotService) Add(rb AddVehicleRequest) error {
+	const op errs.Op = "depotService.Add"
+
 	v := vehicle.Vehicle{
 		Type:              rb.Type,
 		LicensePlate:      rb.LicensePlate,
@@ -73,12 +72,11 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 	}
 
 	if err := v.IsValid(); err != nil {
-		return err
+		return errs.E(op, err, errs.Validation)
 	}
 
 	if err := ds.repo.Create(v); err != nil {
-		log.Println(err)
-		return err
+		return errs.E(op, err)
 	}
 
 	return nil
@@ -88,7 +86,13 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 func (ds *depotService) Find(id int) (VehicleResponse, error) {
 	const op errs.Op = "depotService.Find"
 	if id == 0 {
-		return VehicleResponse{}, errs.E(op, errors.New("id is 0 wtf bro"), errs.NotExist)
+		return VehicleResponse{}, errs.E(
+			op,
+			errs.Parameter("id"),
+			errs.Code("id cannot be zero"),
+			errs.Validation,
+		)
+
 	}
 
 	v, err := ds.repo.ByID(id)
@@ -112,9 +116,11 @@ func (ds *depotService) Find(id int) (VehicleResponse, error) {
 
 // List is used to list all the vehicles in depot
 func (ds *depotService) List() ([]VehicleResponse, error) {
+	const op errs.Op = "depotService.List"
+
 	vehicles, err := ds.repo.All()
 	if err != nil {
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 
 	list := make([]VehicleResponse, 0, len(vehicles))
@@ -141,6 +147,8 @@ func (ds *depotService) List() ([]VehicleResponse, error) {
 
 // Update is used to update a vehicle
 func (ds *depotService) Update(rb UpdateVehicleRequest) error {
+	const op errs.Op = "depotService.Update"
+
 	v := vehicle.Vehicle{
 		Type:              rb.Type,
 		LicensePlate:      rb.LicensePlate,
@@ -152,14 +160,13 @@ func (ds *depotService) Update(rb UpdateVehicleRequest) error {
 	}
 
 	if err := v.IsValid(); err != nil {
-		return err
+		return errs.E(op, err, errs.Validation)
 	}
 
 	v.ID = rb.ID
 
 	if err := ds.repo.Update(v); err != nil {
-		log.Println(err)
-		return err
+		return errs.E(op, err)
 	}
 
 	return nil
@@ -167,5 +174,11 @@ func (ds *depotService) Update(rb UpdateVehicleRequest) error {
 
 // Remove is used to remove a vehicle
 func (ds *depotService) Remove(id int) error {
-	return ds.repo.Delete(id)
+	const op errs.Op = "depotService.Delete"
+
+	err := ds.repo.Delete(id)
+	if err != nil {
+		return errs.E(op, err)
+	}
+	return nil
 }
