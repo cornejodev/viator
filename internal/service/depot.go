@@ -76,7 +76,7 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 	}
 
 	if err := ds.repo.Create(v); err != nil {
-		return errs.E(op, err)
+		return errs.E(op, err, errs.Database)
 	}
 
 	return nil
@@ -120,7 +120,7 @@ func (ds *depotService) List() ([]VehicleResponse, error) {
 
 	vehicles, err := ds.repo.All()
 	if err != nil {
-		return nil, errs.E(op, err)
+		return nil, errs.E(op, err, errs.Database)
 	}
 
 	list := make([]VehicleResponse, 0, len(vehicles))
@@ -166,7 +166,7 @@ func (ds *depotService) Update(rb UpdateVehicleRequest) error {
 	v.ID = rb.ID
 
 	if err := ds.repo.Update(v); err != nil {
-		return errs.E(op, err)
+		return errs.E(op, err, errs.Database)
 	}
 
 	return nil
@@ -178,7 +178,7 @@ func (ds *depotService) Remove(id int) error {
 
 	err := ds.repo.Delete(id)
 	if err != nil {
-		return errs.E(op, err)
+		return errs.E(op, err, errs.Database)
 	}
 	return nil
 }
