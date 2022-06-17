@@ -21,6 +21,8 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 
 // Create is used to create a vehicle in the database
 func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
+	const op errs.Op = "VehicleRepository.Create"
+
 	stmt, err := r.db.Prepare(`
 	INSERT INTO 
 		vehicle(
@@ -39,8 +41,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 	RETURNING id
 	`)
 	if err != nil {
-		log.Println("error while preparing statement: ", err)
-		return err
+		return errs.E(op, err)
 	}
 	defer stmt.Close()
 
@@ -61,8 +62,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 		v.UpdatedAt,
 	).Scan(&v.ID)
 	if err != nil {
-		log.Println("error while trying to create vehicle: ", err)
-		return err
+		return errs.E(op, err)
 	}
 
 	log.Printf("New vehicle added. Vehicle ID is: %d", v.ID)
@@ -72,6 +72,7 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 
 // ByID is used to find a vehicle in database via its ID. It returns a Vehicle struct to the caller
 func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
+	const op errs.Op = "VehicleRepository.ByID"
 	var v vehicle.Vehicle
 
 	stmt, err := r.db.Prepare(`
@@ -92,8 +93,8 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 		id = $1
 	`)
 	if err != nil {
-		log.Println("error while preparing statement: ", err)
-		return vehicle.Vehicle{}, err
+		// log.Println("error while preparing statement: ", err)
+		return vehicle.Vehicle{}, errs.E(op, err)
 	}
 	defer stmt.Close()
 
@@ -111,11 +112,9 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("error while trying to fetch vehicle: ", err)
-			return vehicle.Vehicle{}, err
+			return vehicle.Vehicle{}, errs.E(op, err, errs.NotExist)
 		} else {
-			log.Println("error while trying to fetch vehicle: ", err)
-			return vehicle.Vehicle{}, err
+			return vehicle.Vehicle{}, errs.E(op, err)
 
 		}
 	}
@@ -124,17 +123,17 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 
 // All returns all the vehicles stored in database. It returns  a slice of Vehicle structs
 func (r *VehicleRepository) All() ([]vehicle.Vehicle, error) {
+	const op errs.Op = "VehicleRepository.All"
+
 	stmt, err := r.db.Prepare("SELECT * FROM vehicle")
 	if err != nil {
-		log.Println("error while preparing statement: ", err)
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query()
 	if err != nil {
-		log.Println("error while preparing rows query: ", err)
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 	defer rows.Close()
 
@@ -155,15 +154,13 @@ func (r *VehicleRepository) All() ([]vehicle.Vehicle, error) {
 			&v.UpdatedAt,
 		)
 		if err != nil {
-			log.Println("error while trying to fetch vehicles: ", err)
-			return vehicles, err
+			return vehicles, errs.E(op, err)
 		}
 
 		vehicles = append(vehicles, v)
 	}
 	if err := rows.Err(); err != nil {
-		log.Println("error while iterating through rows: ", err)
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 
 	return vehicles, nil
@@ -171,6 +168,8 @@ func (r *VehicleRepository) All() ([]vehicle.Vehicle, error) {
 
 // Update is used to update a vehicle in the database
 func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
+	const op errs.Op = "VehicleRepository.Update"
+
 	stmt, err := r.db.Prepare(`
 	UPDATE 
 		vehicle 
@@ -187,7 +186,7 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 		id = $9
 	`)
 	if err != nil {
-		return err
+		return errs.E(op, err)
 	}
 	defer stmt.Close()
 
@@ -205,16 +204,16 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 		v.ID,
 	)
 	if err != nil {
-		return err
+		return errs.E(op, err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return errs.E(op, err)
 	}
 
 	if rows == 0 {
-		return errs.ErrVehicleNotFound
+		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
 
 	log.Printf("Vehicle with ID: %d has been modified", v.ID)
@@ -224,6 +223,8 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 
 // Delete is used to delete a vehicle in the database
 func (r *VehicleRepository) Delete(id int) error {
+	const op errs.Op = "VehicleRepository.Delete"
+
 	stmt, err := r.db.Prepare("DELETE FROM vehicle WHERE id = $1")
 	if err != nil {
 		return err
@@ -241,7 +242,7 @@ func (r *VehicleRepository) Delete(id int) error {
 	}
 
 	if rows == 0 {
-		return errs.ErrVehicleNotFound
+		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
 
 	log.Printf("Vehicle with ID: %d removed from DB", id)

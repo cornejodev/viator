@@ -1,42 +1,33 @@
 package rest
 
-const (
-	msgOK   = "success"
-	msgFail = "fail"
-	msgErr  = "error"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 )
 
-type response struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+type JSONResponse struct {
+	Status string      `json:"status"`
+	Data   interface{} `json:"data,omitempty"`
 }
 
-// newResponse return standard JSON response based off JSend specification - https://github.com/omniti-labs/jsend
-// Usage example: resp := newResponse(msgOK, "resource has been updated", data).
-func newResponse(msgType, msg string, data interface{}) response {
-	var r response
-
-	switch msgType {
-	case msgOK:
-		r = response{
-			Status:  msgOK,
-			Message: msg,
-			Data:    data,
-		}
-	case msgFail:
-		r = response{
-			Status:  msgFail,
-			Message: msg,
-			Data:    data,
-		}
-	case msgErr:
-		r = response{
-			Status:  msgErr,
-			Message: msg,
-			Data:    data,
-		}
+func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
+	j := JSONResponse{
+		Status: "success",
+		Data:   data,
 	}
 
-	return r
+	// Marshal JSONResponse struct to JSON for the response body
+	r, _ := json.Marshal(j)
+	resp := string(r)
+
+	// Write Content-Type headers
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	// Write HTTP Statuscode
+	w.WriteHeader(statusCode)
+
+	// Write response body (json)
+	fmt.Fprintln(w, resp)
 }
