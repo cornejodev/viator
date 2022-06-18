@@ -8,8 +8,7 @@ import (
 
 // errs global var
 var (
-	// sets stacktrace
-	_caller bool
+	_caller bool // sets stacktrace
 )
 
 // Kinds of errors.
@@ -68,9 +67,7 @@ type Parameter string
 // Code is a human-readable, short representation of the error
 type Code string
 
-// Error is the type that implements the error interface.
-// It contains a number of fields, each of different type.
-// An Error value may leave some values unset.
+// Errors of xerrors
 type Error struct {
 	// Op represents the caller when error happens
 	Op Op
@@ -109,7 +106,7 @@ func E(v ...interface{}) error {
 			e.Param = val
 		case string:
 			if _caller {
-				e.Err = fmt.Errorf("error executing %s: %s [file=%s, line=%d]", e.Op, val, file, line)
+				e.Err = fmt.Errorf("%s: %s [file=%s, line=%d]", e.Op, val, file, line)
 				continue
 			}
 
@@ -132,7 +129,7 @@ func E(v ...interface{}) error {
 
 		case error:
 			if _caller {
-				e.Err = fmt.Errorf("error executing %s %w [file=%s, line=%d]", e.Op, val, file, line)
+				e.Err = fmt.Errorf("%s %w [file=%s, line=%d]", e.Op, val, file, line)
 				continue
 			}
 
