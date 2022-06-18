@@ -21,21 +21,23 @@ type Vehicle struct {
 
 // IsValid performs validation of struct
 func (v *Vehicle) IsValid() error {
+	const op errs.Op = "vehicle.IsValid"
+	
 	switch {
 	case v.Type == "":
-		return errs.E(errs.Parameter("type"), errs.Code("Missing field: type"), errs.Validation)
+		return errs.E(op, errs.Parameter("type"), errs.Code("Missing field: type"), errs.Validation)
 	case v.LicensePlate == "":
-		return errs.E(errs.Parameter("licensePlate"), errs.Code("Missing field: licensePlate"), errs.Validation)
+		return errs.E(op, errs.Parameter("licensePlate"), errs.Code("Missing field: licensePlate"), errs.Validation)
 	case v.PassengerCapacity <= 0:
-		return errs.E(errs.Parameter("passengerCapacity"), errs.Code("passengerCapacity must be greater than zero"), errs.Validation)
+		return errs.E(op, errs.Parameter("passengerCapacity"), errs.Code("passengerCapacity must be greater than zero"), errs.Validation)
 	case v.Model == "":
-		return errs.E(errs.Parameter("model"), errs.Code("Missing field: model"), errs.Validation)
+		return errs.E(op, errs.Parameter("model"), errs.Code("Missing field: model"), errs.Validation)
 	case v.Make == "":
-		return errs.E(errs.Parameter("make"), errs.Code("Missing field: make"), errs.Validation)
+		return errs.E(op, errs.Parameter("make"), errs.Code("Missing field: make"), errs.Validation)
 	case v.Year <= 0:
-		return errs.E(errs.Parameter("year"), errs.Code("year must be greater than zero"), errs.Validation)
+		return errs.E(op, errs.Parameter("year"), errs.Code("year must be greater than zero"), errs.Validation)
 	case v.Mileage == 0:
-		return errs.E(errs.Parameter("mileage"), errs.Code("mileage must be greater than zero"), errs.Validation)
+		return errs.E(op, errs.Parameter("mileage"), errs.Code("mileage must be greater than zero"), errs.Validation)
 	}
 
 	return nil
