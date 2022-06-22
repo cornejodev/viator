@@ -96,7 +96,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 			err := errs.E(
 				op,
 				errs.Parameter("id"),
-				errs.Code("Route variable and request body IDs do not match."),
+				errs.Code("route variable and request body IDs do not match."),
 				errs.Validation,
 			)
 			errs.HTTPErrorResponse(w, r, err)

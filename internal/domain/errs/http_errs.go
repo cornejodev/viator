@@ -63,7 +63,7 @@ func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
 		panic(err)
 	}
 
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 	multi := zerolog.MultiLevelWriter(consoleWriter, file)
 	lgr := zerolog.New(multi).With().Timestamp().Logger()
 	start := time.Now()
@@ -71,6 +71,7 @@ func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
 	// log error
 	lgr.Error().
 		Time("received_time", start).
+		Str("Kind", e.Kind.String()).
 		Err(e).
 		Str("remote_ip", r.RemoteAddr).
 		Str("user_agent", r.UserAgent()).
