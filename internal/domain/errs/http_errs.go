@@ -65,7 +65,7 @@ func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
 
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
 	multi := zerolog.MultiLevelWriter(consoleWriter, file)
-	lgr := zerolog.New(multi)
+	lgr := zerolog.New(multi).With().Timestamp().Logger()
 	start := time.Now()
 	// lgr := zerolog.New(os.Stdout)
 	// log error

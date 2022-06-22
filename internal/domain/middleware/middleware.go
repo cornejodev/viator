@@ -21,9 +21,9 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			panic(err)
 		}
 
-		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
+		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: zerolog.TimeFieldFormat}
 		multi := zerolog.MultiLevelWriter(consoleWriter, file)
-		logger := zerolog.New(multi)
+		logger := zerolog.New(multi).With().Timestamp().Logger()
 
 		// id := uuid.New()
 		start := time.Now()
