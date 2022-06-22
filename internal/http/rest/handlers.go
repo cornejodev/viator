@@ -17,12 +17,14 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
 
 		err := s.Depot.Add(rb)
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -38,12 +40,14 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -58,6 +62,7 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 
 		vehicles, err := s.Depot.List()
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -73,6 +78,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -81,6 +87,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -98,6 +105,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		err = s.Depot.Update(rb)
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -113,12 +121,14 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
 
 		err = s.Depot.Remove(id)
 		if err != nil {
+			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
