@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	lgr "github.com/rs/zerolog/log"
 )
 
 // ErrResponse is used as the Response Body
@@ -47,8 +49,10 @@ func HTTPErrorResponse(w http.ResponseWriter, err error) {
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
 func typicalErrorResponse(w http.ResponseWriter, e *Error) {
-
 	httpStatusCode := httpErrorStatusCode(e.Kind)
+
+	// log error
+	lgr.Error().Err(e).Msg("")
 
 	// get ErrResponse
 	er := newErrResponse(e)
@@ -60,6 +64,7 @@ func typicalErrorResponse(w http.ResponseWriter, e *Error) {
 	// Write Content-Type headers
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+
 	// Write HTTP Statuscode
 	w.WriteHeader(httpStatusCode)
 

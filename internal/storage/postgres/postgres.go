@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/cornejodev/viator/config"
 	_ "github.com/lib/pq"
@@ -22,6 +21,5 @@ func New(dbcfg config.Database) (db *sql.DB, err error) {
 		return nil, fmt.Errorf("can't do ping %v", err)
 	}
 
-	log.Println("Connected to postgres!")
 	return db, nil
 }

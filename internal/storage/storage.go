@@ -2,11 +2,11 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/cornejodev/viator/config"
 	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage/postgres"
+	"github.com/rs/zerolog"
 )
 
 type Storage interface {
@@ -15,10 +15,11 @@ type Storage interface {
 
 type storage struct {
 	dbcfg config.Database
+	lgr   zerolog.Logger
 }
 
-func New(dbcfg config.Database) *storage {
-	return &storage{dbcfg}
+func New(dbcfg config.Database, lgr zerolog.Logger) *storage {
+	return &storage{dbcfg, lgr}
 }
 
 func (s *storage) ProvideRepository() (*Repository, error) {
@@ -27,8 +28,11 @@ func (s *storage) ProvideRepository() (*Repository, error) {
 
 	db, err = postgres.New(s.dbcfg)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: %v", err)
+		s.lgr.Error().Err(err).Msgf("postgres: %v", err)
+		return nil, err
 	}
+
+	s.lgr.Info().Msg("Connected to Postgres!")
 
 	return &Repository{
 		Vehicle: postgres.NewVehicleRepository(db),
