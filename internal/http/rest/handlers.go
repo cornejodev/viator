@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -24,7 +23,6 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 
 		err := s.Depot.Add(rb)
 		if err != nil {
-			log.Printf("[ERROR] %v \n", errs.E(op, err))
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -46,7 +44,6 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
-			log.Printf("[ERROR] %v \n", errs.E(op, err))
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -61,12 +58,8 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 
 		vehicles, err := s.Depot.List()
 		if err != nil {
-			log.Printf("[ERROR] %v \n", errs.E(op, err))
 			errs.HTTPErrorResponse(w, err)
 			return
-		}
-		if len(vehicles) == 0 {
-			log.Printf("[WARNING] Currently no vehicles in depot.")
 		}
 
 		JSON(w, http.StatusOK, vehicles)
@@ -105,7 +98,6 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		err = s.Depot.Update(rb)
 		if err != nil {
-			log.Printf("[ERROR] %v \n", errs.E(op, err))
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
@@ -127,7 +119,6 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 
 		err = s.Depot.Remove(id)
 		if err != nil {
-			log.Printf("[ERROR] %v \n", errs.E(op, err))
 			errs.HTTPErrorResponse(w, err)
 			return
 		}
