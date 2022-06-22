@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -61,9 +60,6 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			errs.HTTPErrorResponse(w, err)
 			return
-		}
-		if len(vehicles) == 0 {
-			log.Printf("[WARNING] Currently no vehicles in depot.")
 		}
 
 		JSON(w, http.StatusOK, vehicles)

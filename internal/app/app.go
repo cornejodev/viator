@@ -21,14 +21,14 @@ func Run(cfg *config.Config) error {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	// set global to log errors with stack (or not) based on flag
-	logger.WriteErrorStackGlobal(true)
-	lgr.Info().Msgf("log error stack global set to %t", true)
+	// logger.WriteErrorStackGlobal(true)
+	// lgr.Info().Msgf("log error stack global set to %t", true)
 
 	// Prepare storage
 	stg := storage.New(cfg.Database, lgr)
 
 	// Prepare services.
-	svc, err := service.New(stg)
+	svc, err := service.New(stg, lgr)
 	if err != nil {
 		return err
 	}
