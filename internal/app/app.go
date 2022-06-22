@@ -10,7 +10,6 @@ import (
 	"github.com/cornejodev/viator/internal/http/rest"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/cornejodev/viator/internal/storage"
-	"github.com/rs/zerolog"
 )
 
 func Run(cfg *config.Config) error {
@@ -18,7 +17,7 @@ func Run(cfg *config.Config) error {
 	lgr := logger.NewLogger(os.Stdout, true)
 
 	// set global logging time field format to Unix timestamp
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	// set global to log errors with stack (or not) based on flag
 	// logger.WriteErrorStackGlobal(true)

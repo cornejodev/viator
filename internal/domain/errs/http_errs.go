@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
 
-	lgr "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // ErrResponse is used as the Response Body
@@ -31,7 +35,7 @@ type ServiceError struct {
 // Error interface as defined in this package, then a proper error
 // is still formed and sent to the client, however, the Kind and
 // Code will be Unanticipated.
-func HTTPErrorResponse(w http.ResponseWriter, err error) {
+func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	if err == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -39,7 +43,7 @@ func HTTPErrorResponse(w http.ResponseWriter, err error) {
 
 	var e *Error
 	errors.As(err, &e)
-	typicalErrorResponse(w, e)
+	typicalErrorResponse(w, r, e)
 }
 
 // typicalErrorResponse replies to the request with the specified error
@@ -48,11 +52,33 @@ func HTTPErrorResponse(w http.ResponseWriter, err error) {
 //
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
-func typicalErrorResponse(w http.ResponseWriter, e *Error) {
+func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
 	httpStatusCode := httpErrorStatusCode(e.Kind)
+	err := os.MkdirAll(filepath.Dir("logs.txt"), 0755)
+	if err != nil && err != os.ErrExist {
+		panic(err)
+	}
+	file, err := os.OpenFile("logs.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		panic(err)
+	}
 
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
+	multi := zerolog.MultiLevelWriter(consoleWriter, file)
+	lgr := zerolog.New(multi)
+	start := time.Now()
+	// lgr := zerolog.New(os.Stdout)
 	// log error
-	lgr.Error().Err(e).Msg("")
+	lgr.Error().
+		Time("received_time", start).
+		Err(e).
+		Str("remote_ip", r.RemoteAddr).
+		Str("user_agent", r.UserAgent()).
+		// Str("request_id", ) TODO: retrieve request_id in order to connect both error and info logs
+		Str("method", r.Method).
+		Str("url", r.URL.String()).
+		Int("status", httpStatusCode).
+		Msg("")
 
 	// get ErrResponse
 	er := newErrResponse(e)
@@ -111,4 +137,15 @@ func httpErrorStatusCode(k Kind) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+func ipFromHostPort(hp string) string {
+	h, _, err := net.SplitHostPort(hp)
+	if err != nil {
+		return ""
+	}
+	if len(h) > 0 && h[0] == '[' {
+		return h[1 : len(h)-1]
+	}
+	return h
 }

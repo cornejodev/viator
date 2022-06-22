@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"log"
 	"time"
 
 	"github.com/cornejodev/viator/internal/domain/errs"
@@ -65,8 +64,6 @@ func (r *VehicleRepository) Create(v vehicle.Vehicle) error {
 		return errs.E(op, err)
 	}
 
-	log.Printf("New vehicle added. Vehicle ID is: %d", v.ID)
-
 	return nil
 }
 
@@ -93,7 +90,6 @@ func (r *VehicleRepository) ByID(id int) (vehicle.Vehicle, error) {
 		id = $1
 	`)
 	if err != nil {
-		// log.Println("error while preparing statement: ", err)
 		return vehicle.Vehicle{}, errs.E(op, err)
 	}
 	defer stmt.Close()
@@ -216,8 +212,6 @@ func (r *VehicleRepository) Update(v vehicle.Vehicle) error {
 		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
 
-	log.Printf("Vehicle with ID: %d has been modified", v.ID)
-
 	return nil
 }
 
@@ -244,8 +238,6 @@ func (r *VehicleRepository) Delete(id int) error {
 	if rows == 0 {
 		return errs.E(op, errs.Code("item doesn't exist in database"), errs.NotExist)
 	}
-
-	log.Printf("Vehicle with ID: %d removed from DB", id)
 
 	return nil
 }

@@ -18,14 +18,14 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
 		err := s.Depot.Add(rb)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -41,14 +41,14 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -63,7 +63,7 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 		vehicles, err := s.Depot.List()
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -79,7 +79,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -88,7 +88,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -99,14 +99,14 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 				errs.Code("Route variable and request body IDs do not match."),
 				errs.Validation,
 			)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
 		err = s.Depot.Update(rb)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
@@ -122,14 +122,14 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 
 		err = s.Depot.Remove(id)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, err)
+			errs.HTTPErrorResponse(w, r, err)
 			return
 		}
 

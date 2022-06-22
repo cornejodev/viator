@@ -3,12 +3,14 @@ package rest
 import (
 	"net/http"
 
+	"github.com/cornejodev/viator/internal/domain/middleware"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/gorilla/mux"
 )
 
 func Handler(s service.Service) http.Handler {
 	r := mux.NewRouter()
+	r.Use(middleware.LoggingMiddleware)
 
 	r.HandleFunc("/vehicles", addVehicle(s)).Methods("POST")
 	r.HandleFunc("/vehicles", listVehicles(s)).Methods("GET")
