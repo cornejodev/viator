@@ -14,8 +14,9 @@ import (
 
 func Run(cfg *config.Config) error {
 	var op errs.Op = "app.Run"
+	// errs.SetCaller(true) // logging stacktrace
 
-	// setup logger
+	// Setup logger
 	lgr, err := logger.NewLogger(true, "logs.txt")
 	if err != nil {
 		return errs.E(op, err)
@@ -39,8 +40,7 @@ func Run(cfg *config.Config) error {
 	// Setup HTTP server
 	mux := rest.Handler(*svc, lgr)
 
-	// errs.SetCaller(true) // logging stacktrace
-
+	// Setup server
 	s := &http.Server{
 		Handler:      mux,
 		Addr:         cfg.Port,
