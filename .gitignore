@@ -36,3 +36,4 @@ go.work
 /sandbox
 *.db
 cmd/server/server
+*.txt
