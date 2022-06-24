@@ -3,33 +3,25 @@ package middleware
 import (
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/rs/zerolog"
+	"github.com/cornejodev/viator/internal/domain/logger"
 )
+
+//TODO: save all logs to logs.txt, but only console log out the errors with in a tag, both error id tag and and error id tag in log must match
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := os.MkdirAll(filepath.Dir("logs.txt"), 0755)
-		if err != nil && err != os.ErrExist {
-			panic(err)
-		}
-		file, err := os.OpenFile("logs.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		//id := uuid.New()
+		start := time.Now()
+
+		lgr, err := logger.NewLogger(true, "logs.txt")
 		if err != nil {
 			panic(err)
+
 		}
 
-		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
-		multi := zerolog.MultiLevelWriter(consoleWriter, file)
-		logger := zerolog.New(multi).With().Timestamp().Logger()
-
-		// id := uuid.New()
-		start := time.Now()
-		// logger := zerolog.New(os.Stdout)
-
-		logger.Info().
+		lgr.Info().
 			Time("received_time", start).
 			Str("remote_ip", getIP(r.RemoteAddr)).
 			Str("user_agent", r.UserAgent()).
@@ -37,7 +29,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			Str("method", r.Method).
 			Str("url", r.URL.String()).
 			Int("status", 200).
-			Msg("")
+			Msg("Request received")
 
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)

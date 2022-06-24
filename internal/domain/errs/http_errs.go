@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -35,7 +33,7 @@ type ServiceError struct {
 // Error interface as defined in this package, then a proper error
 // is still formed and sent to the client, however, the Kind and
 // Code will be Unanticipated.
-func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, err error) {
 	if err == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -43,7 +41,7 @@ func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 	var e *Error
 	errors.As(err, &e)
-	typicalErrorResponse(w, r, e)
+	typicalErrorResponse(w, r, lgr, e)
 }
 
 // typicalErrorResponse replies to the request with the specified error
@@ -52,26 +50,12 @@ func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 //
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
-func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
+func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, e *Error) {
 	httpStatusCode := httpErrorStatusCode(e.Kind)
-	err := os.MkdirAll(filepath.Dir("logs.txt"), 0755)
-	if err != nil && err != os.ErrExist {
-		panic(err)
-	}
-	file, err := os.OpenFile("logs.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
-	multi := zerolog.MultiLevelWriter(consoleWriter, file)
-	lgr := zerolog.New(multi).With().Timestamp().Logger()
 	start := time.Now()
-	// lgr := zerolog.New(os.Stdout)
-	// log error
 	lgr.Error().
 		Time("received_time", start).
-		Str("Kind", e.Kind.String()).
+		Str("kind", e.Kind.String()).
 		Err(e).
 		Str("remote_ip", r.RemoteAddr).
 		Str("user_agent", r.UserAgent()).
@@ -79,7 +63,7 @@ func typicalErrorResponse(w http.ResponseWriter, r *http.Request, e *Error) {
 		Str("method", r.Method).
 		Str("url", r.URL.String()).
 		Int("status", httpStatusCode).
-		Msg("")
+		Msg("Error response sent")
 
 	// get ErrResponse
 	er := newErrResponse(e)

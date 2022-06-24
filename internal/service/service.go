@@ -1,8 +1,8 @@
 package service
 
 import (
+	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/storage"
-	"github.com/rs/zerolog"
 )
 
 type Service struct {
@@ -10,11 +10,12 @@ type Service struct {
 	Depot   DepotService
 }
 
-func New(s storage.Storage, lgr zerolog.Logger) (*Service, error) {
+func New(s storage.Storage) (*Service, error) {
+	var op errs.Op = "service.New"
+
 	r, err := s.ProvideRepository()
 	if err != nil {
-		lgr.Error().Err(err).Msgf("error from storage: %w", err)
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 
 	return &Service{

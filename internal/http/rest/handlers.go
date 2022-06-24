@@ -8,9 +8,10 @@ import (
 	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog"
 )
 
-func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+func addVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.addVehicle"
 		var rb service.AddVehicleRequest
@@ -18,14 +19,14 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
 		err := s.Depot.Add(rb)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -33,7 +34,7 @@ func addVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+func getVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.getVehicle"
 
@@ -41,14 +42,14 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
 		v, err := s.Depot.Find(id)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -56,14 +57,14 @@ func getVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+func listVehicles(s service.Service, lgr zerolog.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.listVehicles"
 
 		vehicles, err := s.Depot.List()
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -71,7 +72,7 @@ func listVehicles(s service.Service) func(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+func updateVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.updateVehicle"
 
@@ -79,7 +80,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -88,7 +89,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&rb); err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -99,14 +100,14 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 				errs.Code("route variable and request body IDs do not match."),
 				errs.Validation,
 			)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
 		err = s.Depot.Update(rb)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
@@ -114,7 +115,7 @@ func updateVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Request) {
+func deleteVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.deleteVehicle"
 
@@ -122,14 +123,14 @@ func deleteVehicle(s service.Service) func(w http.ResponseWriter, r *http.Reques
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 
 		err = s.Depot.Remove(id)
 		if err != nil {
 			err = errs.E(op, err)
-			errs.HTTPErrorResponse(w, r, err)
+			errs.HTTPErrorResponse(w, r, lgr, err)
 			return
 		}
 

@@ -2,33 +2,24 @@ package app
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/cornejodev/viator/config"
+	"github.com/cornejodev/viator/internal/domain/errs"
+	"github.com/cornejodev/viator/internal/domain/logger"
 	"github.com/cornejodev/viator/internal/http/rest"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/cornejodev/viator/internal/storage"
-	"github.com/rs/zerolog"
 )
 
 func Run(cfg *config.Config) error {
-	err := os.MkdirAll(filepath.Dir("logs.txt"), 0755)
-	if err != nil && err != os.ErrExist {
-		panic(err)
-	}
-	file, err := os.OpenFile("logs.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		panic(err)
-	}
+	var op errs.Op = "app.Run"
 
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
-	multi := zerolog.MultiLevelWriter(consoleWriter, file)
-	lgr := zerolog.New(multi).With().Timestamp().Logger()
 	// setup logger
-	// lgr := logger.NewLogger(os.Stdout, true)
-
+	lgr, err := logger.NewLogger(true, "logs.txt")
+	if err != nil {
+		return errs.E(op, err)
+	}
 	// set global logging time field format to Unix timestamp
 	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
@@ -37,16 +28,23 @@ func Run(cfg *config.Config) error {
 	// lgr.Info().Msgf("log error stack global set to %t", true)
 
 	// Prepare storage
-	stg := storage.New(cfg.Database, lgr)
+	stg, err := storage.New(cfg.Database)
+	if err != nil {
+		lgr.Error().Err(err).Msgf("postgres: %v", err)
+		return errs.E(op, err)
+	}
+	lgr.Info().Msg("Connected to Postgres!")
 
 	// Prepare services.
-	svc, err := service.New(stg, lgr)
+	svc, err := service.New(stg)
 	if err != nil {
-		return err
+		lgr.Error().Err(err).Msg("service:")
+		return errs.E(op, err)
 	}
+	lgr.Info().Msg("Services setup")
 
 	// Setup HTTP server
-	mux := rest.Handler(*svc)
+	mux := rest.Handler(*svc, lgr)
 
 	// errs.SetCaller(true) // logging stacktrace
 
@@ -59,5 +57,5 @@ func Run(cfg *config.Config) error {
 	lgr.Info().Msgf("Listening on port%s...", s.Addr)
 	err = s.ListenAndServe()
 
-	return err
+	return errs.E(op, err)
 }

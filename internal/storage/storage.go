@@ -4,9 +4,9 @@ import (
 	"database/sql"
 
 	"github.com/cornejodev/viator/config"
+	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage/postgres"
-	"github.com/rs/zerolog"
 )
 
 type Storage interface {
@@ -15,24 +15,21 @@ type Storage interface {
 
 type storage struct {
 	dbcfg config.Database
-	lgr   zerolog.Logger
 }
 
-func New(dbcfg config.Database, lgr zerolog.Logger) *storage {
-	return &storage{dbcfg, lgr}
+func New(dbcfg config.Database) (*storage, error) {
+	return &storage{dbcfg}, nil
 }
 
 func (s *storage) ProvideRepository() (*Repository, error) {
+	var op errs.Op = "storage.ProvideRepository"
 	var err error
 	var db *sql.DB
 
 	db, err = postgres.New(s.dbcfg)
 	if err != nil {
-		s.lgr.Error().Err(err).Msgf("postgres: %v", err)
-		return nil, err
+		return nil, errs.E(op, err)
 	}
-
-	s.lgr.Info().Msg("Connected to Postgres!")
 
 	return &Repository{
 		Vehicle: postgres.NewVehicleRepository(db),
