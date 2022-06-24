@@ -20,28 +20,21 @@ func Run(cfg *config.Config) error {
 	if err != nil {
 		return errs.E(op, err)
 	}
-	// set global logging time field format to Unix timestamp
-	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
-	// set global to log errors with stack (or not) based on flag
-	// logger.WriteErrorStackGlobal(true)
-	// lgr.Info().Msgf("log error stack global set to %t", true)
 
 	// Prepare storage
 	stg, err := storage.New(cfg.Database)
 	if err != nil {
-		lgr.Error().Err(err).Msgf("postgres: %v", err)
+		lgr.Error().Err(err).Msg("Cannot start Postgres")
 		return errs.E(op, err)
 	}
-	lgr.Info().Msg("Connected to Postgres!")
+	lgr.Info().Msg("Connected to Postgres")
 
 	// Prepare services.
 	svc, err := service.New(stg)
 	if err != nil {
-		lgr.Error().Err(err).Msg("service:")
+		lgr.Error().Err(err).Msg("Cannot start Service")
 		return errs.E(op, err)
 	}
-	lgr.Info().Msg("Services setup")
 
 	// Setup HTTP server
 	mux := rest.Handler(*svc, lgr)
