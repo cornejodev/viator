@@ -17,7 +17,7 @@ func Run(cfg *config.Config) error {
 	// errs.SetCaller(true) // logging stacktrace
 
 	// Setup logger
-	lgr, err := logger.NewLogger(true, "logs.txt")
+	lgr, err := logger.NewLogger(true, "../../logs/logs.txt")
 	if err != nil {
 		return errs.E(op, err)
 	}
@@ -28,7 +28,7 @@ func Run(cfg *config.Config) error {
 		lgr.Error().Err(err).Msg("Cannot start Postgres")
 		return errs.E(op, err)
 	}
-	lgr.Info().Msg("Connected to Postgres")
+	lgr.Info().Msg("Connected to Postgres...")
 
 	// Prepare services.
 	svc, err := service.New(stg)

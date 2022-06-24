@@ -15,7 +15,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		//id := uuid.New()
 		start := time.Now()
 
-		lgr, err := logger.NewLogger(true, "logs.txt")
+		lgr, err := logger.NewLogger(true, "../../logs/logs.txt")
 		if err != nil {
 			panic(err)
 

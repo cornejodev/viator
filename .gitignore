@@ -16,10 +16,6 @@ go.work
 /Godeps/
 
 ### Ignore Binaries ###
-
-#binary created with main
-*.main
- 
 !/**/
 !*.*
 
@@ -35,5 +31,7 @@ go.work
 *.DS_Store
 /sandbox
 *.db
-cmd/server/server
 *.txt
+
+# Binary created from main
+cmd/server/main
