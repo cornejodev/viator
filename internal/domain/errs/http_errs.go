@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"time"
 
-	lgr "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // ErrResponse is used as the Response Body
@@ -31,7 +33,7 @@ type ServiceError struct {
 // Error interface as defined in this package, then a proper error
 // is still formed and sent to the client, however, the Kind and
 // Code will be Unanticipated.
-func HTTPErrorResponse(w http.ResponseWriter, err error) {
+func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, err error) {
 	if err == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -39,7 +41,7 @@ func HTTPErrorResponse(w http.ResponseWriter, err error) {
 
 	var e *Error
 	errors.As(err, &e)
-	typicalErrorResponse(w, e)
+	typicalErrorResponse(w, r, lgr, e)
 }
 
 // typicalErrorResponse replies to the request with the specified error
@@ -48,11 +50,20 @@ func HTTPErrorResponse(w http.ResponseWriter, err error) {
 //
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
-func typicalErrorResponse(w http.ResponseWriter, e *Error) {
+func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, e *Error) {
 	httpStatusCode := httpErrorStatusCode(e.Kind)
-
-	// log error
-	lgr.Error().Err(e).Msg("")
+	start := time.Now()
+	lgr.Error().
+		Time("received_time", start).
+		Str("kind", e.Kind.String()).
+		Err(e).
+		Str("remote_ip", r.RemoteAddr).
+		Str("user_agent", r.UserAgent()).
+		// Str("request_id", ) TODO: retrieve request_id in order to connect both error and info logs
+		Str("method", r.Method).
+		Str("url", r.URL.String()).
+		Int("status", httpStatusCode).
+		Msg("Error response sent")
 
 	// get ErrResponse
 	er := newErrResponse(e)
@@ -111,4 +122,15 @@ func httpErrorStatusCode(k Kind) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+func ipFromHostPort(hp string) string {
+	h, _, err := net.SplitHostPort(hp)
+	if err != nil {
+		return ""
+	}
+	if len(h) > 0 && h[0] == '[' {
+		return h[1 : len(h)-1]
+	}
+	return h
 }
