@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/cornejodev/viator/internal/domain/logger"
+	"github.com/gorilla/context"
+	"github.com/rs/xid"
 )
-
-//TODO: save all logs to logs.txt, but only console log out the errors with in a tag, both error id tag and and error id tag in log must match
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//id := uuid.New()
+		id := xid.New()
 		start := time.Now()
+
+		context.Set(r, "request_id", id.String())
 
 		lgr, err := logger.NewLogger(true, "../../logs/logs.txt")
 		if err != nil {
@@ -23,9 +25,9 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		lgr.Info().
 			Time("received_time", start).
+			Str("request_id", id.String()).
 			Str("remote_ip", getIP(r.RemoteAddr)).
 			Str("user_agent", r.UserAgent()).
-			// Str("request_id", id.String()). TODO: propagate request_id in order to connect both error and info logs
 			Str("method", r.Method).
 			Str("url", r.URL.String()).
 			Int("status", 200).

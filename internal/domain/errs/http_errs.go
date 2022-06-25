@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/context"
 	"github.com/rs/zerolog"
 )
 
@@ -51,15 +52,25 @@ func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logge
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
 func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, e *Error) {
+	var op Op = "http_errs.typicalErrorResponse"
+
 	httpStatusCode := httpErrorStatusCode(e.Kind)
 	start := time.Now()
+	val := context.Get(r, "request_id")
+
+	rid, ok := val.(string)
+	if !ok {
+		msg := fmt.Sprintf("want type string;  got %T", rid)
+		e := E(op, msg)
+		lgr.Error().Err(e).Msg("Type assertion error")
+	}
 	lgr.Error().
 		Time("received_time", start).
+		Str("request_id", rid).
 		Str("kind", e.Kind.String()).
 		Err(e).
 		Str("remote_ip", r.RemoteAddr).
 		Str("user_agent", r.UserAgent()).
-		// Str("request_id", ) TODO: retrieve request_id in order to connect both error and info logs
 		Str("method", r.Method).
 		Str("url", r.URL.String()).
 		Int("status", httpStatusCode).
