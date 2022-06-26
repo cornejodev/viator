@@ -1,11 +1,12 @@
 package rest
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/context"
+	// "github.com/gorilla/context"
 	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 )
@@ -16,7 +17,11 @@ func RequestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
 			id := xid.New()
 			start := time.Now()
 
-			context.Set(r, "request_id", id.String())
+			// context.Set(r, "request_id", id.String()) ->  gorilla/context solution
+
+			ctx := r.Context()
+			ctx = context.WithValue(ctx, "request_id", id.String())
+			r = r.WithContext(ctx)
 
 			lgr.Info().
 				Time("received_time", start).

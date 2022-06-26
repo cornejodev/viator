@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/rs/zerolog"
 )
 
@@ -56,7 +55,10 @@ func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Lo
 
 	httpStatusCode := httpErrorStatusCode(e.Kind)
 	start := time.Now()
-	val := context.Get(r, "request_id")
+	// val := context.Get(r, "request_id") -> gorilla/context solution
+
+	ctx := r.Context()
+	val := ctx.Value("request_id")
 
 	rid, ok := val.(string)
 	if !ok {
