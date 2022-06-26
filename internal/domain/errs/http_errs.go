@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/rs/zerolog"
 )
@@ -51,24 +50,14 @@ func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logge
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
 func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, e *Error) {
-	var op Op = "http_errs.typicalErrorResponse"
-
-	httpStatusCode := httpErrorStatusCode(e.Kind)
-	start := time.Now()
-	// val := context.Get(r, "request_id") -> gorilla/context solution
-
 	ctx := r.Context()
 	val := ctx.Value("request_id")
+	rID := val.(string) // maybe check is needed here maybe not...
 
-	rid, ok := val.(string)
-	if !ok {
-		msg := fmt.Sprintf("want type string;  got %T", rid)
-		e := E(op, msg)
-		lgr.Error().Err(e).Msg("Type assertion error")
-	}
+	httpStatusCode := httpErrorStatusCode(e.Kind)
+
 	lgr.Error().
-		Time("received_time", start).
-		Str("request_id", rid).
+		Str("request_id", rID).
 		Str("kind", e.Kind.String()).
 		Err(e).
 		Str("remote_ip", r.RemoteAddr).

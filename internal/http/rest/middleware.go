@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"time"
 
 	// "github.com/gorilla/context"
 	"github.com/rs/xid"
@@ -15,23 +14,19 @@ func RequestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			id := xid.New()
-			start := time.Now()
-
-			// context.Set(r, "request_id", id.String()) ->  gorilla/context solution
 
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, "request_id", id.String())
 			r = r.WithContext(ctx)
 
 			lgr.Info().
-				Time("received_time", start).
 				Str("request_id", id.String()).
 				Str("remote_ip", getIP(r.RemoteAddr)).
 				Str("user_agent", r.UserAgent()).
 				Str("method", r.Method).
 				Str("url", r.URL.String()).
 				Int("status", 200).
-				Msg("Request received")
+				Msg("Request logged")
 
 			// Call the next handler, which can be another middleware in the chain, or the final handler.
 			next.ServeHTTP(w, r)
