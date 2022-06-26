@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/rs/zerolog"
 )
@@ -51,15 +50,18 @@ func HTTPErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logge
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
 func typicalErrorResponse(w http.ResponseWriter, r *http.Request, lgr zerolog.Logger, e *Error) {
+	ctx := r.Context()
+	val := ctx.Value("request_id")
+	rID := val.(string) // maybe check is needed here maybe not...
+
 	httpStatusCode := httpErrorStatusCode(e.Kind)
-	start := time.Now()
+
 	lgr.Error().
-		Time("received_time", start).
+		Str("request_id", rID).
 		Str("kind", e.Kind.String()).
 		Err(e).
 		Str("remote_ip", r.RemoteAddr).
 		Str("user_agent", r.UserAgent()).
-		// Str("request_id", ) TODO: retrieve request_id in order to connect both error and info logs
 		Str("method", r.Method).
 		Str("url", r.URL.String()).
 		Int("status", httpStatusCode).

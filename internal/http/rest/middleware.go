@@ -1,39 +1,37 @@
-package middleware
+package rest
 
 import (
+	"context"
 	"net"
 	"net/http"
-	"time"
 
-	"github.com/cornejodev/viator/internal/domain/logger"
+	// "github.com/gorilla/context"
+	"github.com/rs/xid"
+	"github.com/rs/zerolog"
 )
 
-//TODO: save all logs to logs.txt, but only console log out the errors with in a tag, both error id tag and and error id tag in log must match
+func RequestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			id := xid.New()
 
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//id := uuid.New()
-		start := time.Now()
+			ctx := r.Context()
+			ctx = context.WithValue(ctx, "request_id", id.String())
+			r = r.WithContext(ctx)
 
-		lgr, err := logger.NewLogger(true, "../../logs/logs.txt")
-		if err != nil {
-			panic(err)
+			lgr.Info().
+				Str("request_id", id.String()).
+				Str("remote_ip", getIP(r.RemoteAddr)).
+				Str("user_agent", r.UserAgent()).
+				Str("method", r.Method).
+				Str("url", r.URL.String()).
+				Int("status", 200).
+				Msg("Request logged")
 
-		}
-
-		lgr.Info().
-			Time("received_time", start).
-			Str("remote_ip", getIP(r.RemoteAddr)).
-			Str("user_agent", r.UserAgent()).
-			// Str("request_id", id.String()). TODO: propagate request_id in order to connect both error and info logs
-			Str("method", r.Method).
-			Str("url", r.URL.String()).
-			Int("status", 200).
-			Msg("Request received")
-
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		next.ServeHTTP(w, r)
-	})
+			// Call the next handler, which can be another middleware in the chain, or the final handler.
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // get ip from host port

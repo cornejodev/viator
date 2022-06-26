@@ -20,6 +20,8 @@ func NewLogger(withTimestamp bool, fname string) (zerolog.Logger, error) {
 		return zerolog.Logger{}, errs.E(op, err)
 	}
 
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
 	cw := SetupConsoleWriter()
 
 	multi := zerolog.MultiLevelWriter(cw, file)
@@ -62,7 +64,7 @@ func SetupConsoleWriter() zerolog.ConsoleWriter {
 	cw := zerolog.ConsoleWriter{Out: os.Stdout,
 		// NoColor:       true,
 		TimeFormat:    time.UnixDate,
-		FieldsExclude: []string{"received_time", "remote_ip", "user_agent", "message"},
+		FieldsExclude: []string{"remote_ip", "user_agent", "message"},
 	}
 
 	cw.FormatLevel = func(i interface{}) string {

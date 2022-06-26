@@ -3,7 +3,6 @@ package rest
 import (
 	"net/http"
 
-	"github.com/cornejodev/viator/internal/domain/middleware"
 	"github.com/cornejodev/viator/internal/service"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
@@ -11,7 +10,7 @@ import (
 
 func Handler(s service.Service, lgr zerolog.Logger) http.Handler {
 	r := mux.NewRouter()
-	r.Use(middleware.LoggingMiddleware)
+	r.Use(RequestLogger(lgr))
 
 	r.HandleFunc("/vehicles", addVehicle(s, lgr)).Methods("POST")
 	r.HandleFunc("/vehicles", listVehicles(s, lgr)).Methods("GET")
