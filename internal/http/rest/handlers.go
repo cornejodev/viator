@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -136,4 +137,24 @@ func deleteVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWr
 
 		JSON(w, http.StatusOK, nil)
 	}
+}
+
+// decoderErr is a convenience function to handle errors returned by
+// json.NewDecoder(r.Body).Decode(&data) and return the appropriate
+// error response
+func decoderErr(err error) error {
+	switch {
+	// If the request body is empty (io.EOF)
+	// return an error
+	case err == io.EOF:
+		return errs.E(errs.InvalidRequest, "Request Body cannot be empty")
+	// If the request body has malformed JSON (io.ErrUnexpectedEOF)
+	// return an error
+	case err == io.ErrUnexpectedEOF:
+		return errs.E(errs.InvalidRequest, "Malformed JSON")
+	// return other errors
+	case err != nil:
+		return errs.E(err)
+	}
+	return nil
 }

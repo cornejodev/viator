@@ -10,7 +10,10 @@ import (
 
 func Handler(s service.Service, lgr zerolog.Logger) http.Handler {
 	r := mux.NewRouter()
-	r.Use(RequestLogger(lgr))
+	r.Use(
+		requestLogger(lgr),
+		//TODO: add setTimeout middleware
+	)
 
 	r.HandleFunc("/vehicles", addVehicle(s, lgr)).Methods("POST")
 	r.HandleFunc("/vehicles", listVehicles(s, lgr)).Methods("GET")

@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func RequestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
+func requestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			id := xid.New()
@@ -33,6 +33,19 @@ func RequestLogger(lgr zerolog.Logger) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+// func setTimeout(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+// 		defer cancel()
+
+// 		// This gives you a copy of the request with a the request context
+// 		// changed to the new context with the 5-second timeout created
+// 		// above.
+// 		r = r.WithContext(ctx)
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 // get ip from host port
 func getIP(hp string) string {
