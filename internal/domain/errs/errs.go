@@ -43,6 +43,8 @@ const (
 	Unanticipated
 	// Invalid Request
 	InvalidRequest
+	//Unable to fullfil request in a predetermined length of time.
+	Timeout
 	// Unauthenticated is used when a request lacks valid authentication credentials.
 	//
 	// For Unauthenticated errors, the response body will be empty.
@@ -181,6 +183,8 @@ func (k Kind) String() string {
 		return "unanticipated_error"
 	case InvalidRequest:
 		return "invalid_request_error"
+	case Timeout:
+		return "request_timeout"
 	case Unauthenticated:
 		return "unauthenticated_request"
 	case Unauthorized:

@@ -71,6 +71,15 @@ func (r *VehicleRepository) Create(ctx context.Context, v vehicle.Vehicle) error
 		v.CreatedAt,
 		v.UpdatedAt,
 	).Scan(&v.ID)
+	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return errs.E(
+				op,
+				errs.Code(ctx.Err().Error()+" "+err.Error()),
+			)
+		}
+		return errs.E(op, err)
+	}
 
 	// Commit the transaction.
 	if err = tx.Commit(); err != nil {
@@ -128,6 +137,12 @@ func (r *VehicleRepository) ByID(ctx context.Context, id int) (vehicle.Vehicle, 
 		&v.UpdatedAt,
 	)
 	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return vehicle.Vehicle{}, errs.E(
+				op,
+				errs.Code(ctx.Err().Error()+" "+err.Error()),
+			)
+		}
 		if err == sql.ErrNoRows {
 			return vehicle.Vehicle{}, errs.E(op, err, errs.NotExist)
 		} else {
@@ -168,6 +183,7 @@ func (r *VehicleRepository) All(ctx context.Context) ([]vehicle.Vehicle, error) 
 			return nil, errs.E(
 				op,
 				errs.Code(ctx.Err().Error()+" "+err.Error()),
+				errs.Timeout,
 			)
 		}
 		return nil, errs.E(op, err)
@@ -254,6 +270,12 @@ func (r *VehicleRepository) Update(ctx context.Context, v vehicle.Vehicle) error
 		v.ID,
 	)
 	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return errs.E(
+				op,
+				errs.Code(ctx.Err().Error()+" "+err.Error()),
+			)
+		}
 		return errs.E(op, err)
 	}
 
@@ -294,6 +316,12 @@ func (r *VehicleRepository) Delete(ctx context.Context, id int) error {
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return errs.E(
+				op,
+				errs.Code(ctx.Err().Error()+" "+err.Error()),
+			)
+		}
 		return err
 	}
 
