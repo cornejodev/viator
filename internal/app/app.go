@@ -17,7 +17,7 @@ func Run(cfg *config.Config) error {
 	// errs.SetCaller(true) // logging stacktrace
 
 	// Setup logger
-	lgr, err := logger.NewLogger(true, "../../logs/logs.txt")
+	lgr, err := logger.NewLogger(true)
 	if err != nil {
 		return errs.E(op, err)
 	}

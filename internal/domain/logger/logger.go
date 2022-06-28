@@ -12,8 +12,9 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 )
 
-func NewLogger(withTimestamp bool, fname string) (zerolog.Logger, error) {
+func NewLogger(withTimestamp bool) (zerolog.Logger, error) {
 	var op errs.Op = "logger.NewLogger"
+	const fname = "../../logs/logs.txt"
 
 	file, err := CreateLogFile(fname)
 	if err != nil {
