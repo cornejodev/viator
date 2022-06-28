@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/cornejodev/viator/config"
@@ -41,9 +42,9 @@ type Repository struct {
 }
 
 type VehicleRepository interface {
-	Create(v vehicle.Vehicle) error
-	ByID(id int) (vehicle.Vehicle, error)
-	All() ([]vehicle.Vehicle, error)
-	Update(v vehicle.Vehicle) error
-	Delete(id int) error
+	Create(ctx context.Context, v vehicle.Vehicle) error
+	ByID(ctx context.Context, id int) (vehicle.Vehicle, error)
+	All(ctx context.Context) ([]vehicle.Vehicle, error)
+	Update(ctx context.Context, v vehicle.Vehicle) error
+	Delete(ctx context.Context, id int) error
 }

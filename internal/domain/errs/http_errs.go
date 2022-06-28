@@ -121,6 +121,8 @@ func httpErrorStatusCode(k Kind) int {
 	// error message will be sent to the caller
 	case Other, IO, Internal, Database, Unanticipated:
 		return http.StatusInternalServerError
+	case Timeout:
+		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError
 	}

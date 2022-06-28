@@ -1,17 +1,19 @@
 package service
 
 import (
+	"context"
+
 	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage"
 )
 
 type DepotService interface {
-	Add(rb AddVehicleRequest) error
-	Find(id int) (VehicleResponse, error)
-	List() ([]VehicleResponse, error)
-	Update(rb UpdateVehicleRequest) error
-	Remove(id int) error
+	Add(cxt context.Context, rb AddVehicleRequest) error
+	Find(ctx context.Context, id int) (VehicleResponse, error)
+	List(ctx context.Context) ([]VehicleResponse, error)
+	Update(ctx context.Context, rb UpdateVehicleRequest) error
+	Remove(ctx context.Context, id int) error
 }
 
 type depotService struct {
@@ -58,7 +60,7 @@ type VehicleResponse struct {
 }
 
 // Add is used to add a vehicle
-func (ds *depotService) Add(rb AddVehicleRequest) error {
+func (ds *depotService) Add(ctx context.Context, rb AddVehicleRequest) error {
 	const op errs.Op = "depotService.Add"
 
 	v := vehicle.Vehicle{
@@ -75,7 +77,7 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 		return errs.E(op, err, errs.Validation)
 	}
 
-	if err := ds.repo.Create(v); err != nil {
+	if err := ds.repo.Create(ctx, v); err != nil {
 		return errs.E(op, err, errs.Database)
 	}
 
@@ -83,7 +85,7 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 }
 
 // Find is used to find a vehicle by ID
-func (ds *depotService) Find(id int) (VehicleResponse, error) {
+func (ds *depotService) Find(ctx context.Context, id int) (VehicleResponse, error) {
 	const op errs.Op = "depotService.Find"
 	if id == 0 {
 		return VehicleResponse{}, errs.E(
@@ -95,7 +97,7 @@ func (ds *depotService) Find(id int) (VehicleResponse, error) {
 
 	}
 
-	v, err := ds.repo.ByID(id)
+	v, err := ds.repo.ByID(ctx, id)
 	if err != nil {
 		return VehicleResponse{}, errs.E(op, err, errs.Database)
 	}
@@ -114,11 +116,11 @@ func (ds *depotService) Find(id int) (VehicleResponse, error) {
 	return vr, nil
 }
 
-// List is used to list all the vehicles in depot
-func (ds *depotService) List() ([]VehicleResponse, error) {
+// // List is used to list all the vehicles in depot
+func (ds *depotService) List(ctx context.Context) ([]VehicleResponse, error) {
 	const op errs.Op = "depotService.List"
 
-	vehicles, err := ds.repo.All()
+	vehicles, err := ds.repo.All(ctx)
 	if err != nil {
 		return nil, errs.E(op, err, errs.Database)
 	}
@@ -146,7 +148,7 @@ func (ds *depotService) List() ([]VehicleResponse, error) {
 }
 
 // Update is used to update a vehicle
-func (ds *depotService) Update(rb UpdateVehicleRequest) error {
+func (ds *depotService) Update(ctx context.Context, rb UpdateVehicleRequest) error {
 	const op errs.Op = "depotService.Update"
 
 	v := vehicle.Vehicle{
@@ -165,7 +167,7 @@ func (ds *depotService) Update(rb UpdateVehicleRequest) error {
 
 	v.ID = rb.ID
 
-	if err := ds.repo.Update(v); err != nil {
+	if err := ds.repo.Update(ctx, v); err != nil {
 		return errs.E(op, err, errs.Database)
 	}
 
@@ -173,10 +175,10 @@ func (ds *depotService) Update(rb UpdateVehicleRequest) error {
 }
 
 // Remove is used to remove a vehicle
-func (ds *depotService) Remove(id int) error {
+func (ds *depotService) Remove(ctx context.Context, id int) error {
 	const op errs.Op = "depotService.Delete"
 
-	err := ds.repo.Delete(id)
+	err := ds.repo.Delete(ctx, id)
 	if err != nil {
 		return errs.E(op, err, errs.Database)
 	}

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -23,7 +24,7 @@ func addVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWrite
 			return
 		}
 
-		err := s.Depot.Add(rb)
+		err := s.Depot.Add(r.Context(), rb)
 		if err != nil {
 			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, r, lgr, err)
@@ -46,7 +47,7 @@ func getVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWrite
 			return
 		}
 
-		v, err := s.Depot.Find(id)
+		v, err := s.Depot.Find(r.Context(), id)
 		if err != nil {
 			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, r, lgr, err)
@@ -61,7 +62,7 @@ func listVehicles(s service.Service, lgr zerolog.Logger) func(w http.ResponseWri
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op errs.Op = "handlers.listVehicles"
 
-		vehicles, err := s.Depot.List()
+		vehicles, err := s.Depot.List(r.Context())
 		if err != nil {
 			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, r, lgr, err)
@@ -104,7 +105,7 @@ func updateVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWr
 			return
 		}
 
-		err = s.Depot.Update(rb)
+		err = s.Depot.Update(r.Context(), rb)
 		if err != nil {
 			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, r, lgr, err)
@@ -127,7 +128,7 @@ func deleteVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWr
 			return
 		}
 
-		err = s.Depot.Remove(id)
+		err = s.Depot.Remove(r.Context(), id)
 		if err != nil {
 			err = errs.E(op, err)
 			errs.HTTPErrorResponse(w, r, lgr, err)
@@ -136,4 +137,24 @@ func deleteVehicle(s service.Service, lgr zerolog.Logger) func(w http.ResponseWr
 
 		JSON(w, http.StatusOK, nil)
 	}
+}
+
+// decoderErr is a convenience function to handle errors returned by
+// json.NewDecoder(r.Body).Decode(&data) and return the appropriate
+// error response
+func decoderErr(err error) error {
+	switch {
+	// If the request body is empty (io.EOF)
+	// return an error
+	case err == io.EOF:
+		return errs.E("Request Body cannot be empty", errs.InvalidRequest)
+	// If the request body has malformed JSON (io.ErrUnexpectedEOF)
+	// return an error
+	case err == io.ErrUnexpectedEOF:
+		return errs.E("Malformed JSON", errs.InvalidRequest)
+	// return other errors
+	case err != nil:
+		return errs.E(err)
+	}
+	return nil
 }

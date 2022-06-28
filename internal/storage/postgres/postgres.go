@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/cornejodev/viator/config"
 	_ "github.com/lib/pq"
@@ -17,7 +19,10 @@ func New(dbcfg config.Database) (db *sql.DB, err error) {
 		return nil, fmt.Errorf("can't open the data base %v", err)
 	}
 
-	if err = db.Ping(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err = db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("can't do ping %v", err)
 	}
 

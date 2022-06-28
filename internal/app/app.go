@@ -44,8 +44,9 @@ func Run(cfg *config.Config) error {
 	s := &http.Server{
 		Handler:      mux,
 		Addr:         cfg.Port,
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		// IdleTimeout:  120 * time.Second,
 	}
 	lgr.Info().Msgf("Listening on port%s...", s.Addr)
 	err = s.ListenAndServe()
