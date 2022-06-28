@@ -24,7 +24,7 @@ func NewVehicleRepository(db *sql.DB) *VehicleRepository {
 // Create is used to create a vehicle in the database
 func (r *VehicleRepository) Create(ctx context.Context, v vehicle.Vehicle) error {
 	const op errs.Op = "VehicleRepository.Create"
-	// time.Sleep(15 * time.Second)
+
 	// Get a Tx for making transaction requests.
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -93,10 +93,6 @@ func (r *VehicleRepository) ByID(ctx context.Context, id int) (vehicle.Vehicle, 
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
 
-	// operation timeout
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
 	stmt, err := r.db.PrepareContext(ctx, `
 	SELECT
 		id,
@@ -160,7 +156,7 @@ func (r *VehicleRepository) All(ctx context.Context) ([]vehicle.Vehicle, error) 
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
 
-	stmt, err := r.db.PrepareContext(ctx, "SELECT pg_sleep(15), * FROM vehicle")
+	stmt, err := r.db.PrepareContext(ctx, "SELECT * FROM vehicle")
 	if err != nil {
 		return nil, errs.E(op, err)
 	}
@@ -223,10 +219,6 @@ func (r *VehicleRepository) Update(ctx context.Context, v vehicle.Vehicle) error
 	}
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
-
-	// operation timeout
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 
 	stmt, err := r.db.PrepareContext(ctx, `
 	UPDATE
@@ -293,10 +285,6 @@ func (r *VehicleRepository) Delete(ctx context.Context, id int) error {
 	}
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
-
-	// operation timeout
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 
 	stmt, err := r.db.PrepareContext(ctx, "DELETE FROM vehicle WHERE id = $1")
 	if err != nil {

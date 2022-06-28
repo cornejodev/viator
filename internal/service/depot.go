@@ -11,7 +11,7 @@ import (
 type DepotService interface {
 	Add(cxt context.Context, rb AddVehicleRequest) error
 	Find(ctx context.Context, id int) (VehicleResponse, error)
-	List(ctz context.Context) ([]VehicleResponse, error)
+	List(ctx context.Context) ([]VehicleResponse, error)
 	Update(ctx context.Context, rb UpdateVehicleRequest) error
 	Remove(ctx context.Context, id int) error
 }
