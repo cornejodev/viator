@@ -1,17 +1,19 @@
 package service
 
 import (
+	"context"
+
 	"github.com/cornejodev/viator/internal/domain/errs"
 	"github.com/cornejodev/viator/internal/domain/vehicle"
 	"github.com/cornejodev/viator/internal/storage"
 )
 
 type DepotService interface {
-	Add(rb AddVehicleRequest) error
-	Find(id int) (VehicleResponse, error)
-	List() ([]VehicleResponse, error)
-	Update(rb UpdateVehicleRequest) error
-	Remove(id int) error
+	Add(cxt context.Context, rb AddVehicleRequest) error
+	// Find(id int) (VehicleResponse, error)
+	// List() ([]VehicleResponse, error)
+	// Update(rb UpdateVehicleRequest) error
+	// Remove(id int) error
 }
 
 type depotService struct {
@@ -58,7 +60,7 @@ type VehicleResponse struct {
 }
 
 // Add is used to add a vehicle
-func (ds *depotService) Add(rb AddVehicleRequest) error {
+func (ds *depotService) Add(ctx context.Context, rb AddVehicleRequest) error {
 	const op errs.Op = "depotService.Add"
 
 	v := vehicle.Vehicle{
@@ -75,110 +77,110 @@ func (ds *depotService) Add(rb AddVehicleRequest) error {
 		return errs.E(op, err, errs.Validation)
 	}
 
-	if err := ds.repo.Create(v); err != nil {
+	if err := ds.repo.Create(ctx, v); err != nil {
 		return errs.E(op, err, errs.Database)
 	}
 
 	return nil
 }
 
-// Find is used to find a vehicle by ID
-func (ds *depotService) Find(id int) (VehicleResponse, error) {
-	const op errs.Op = "depotService.Find"
-	if id == 0 {
-		return VehicleResponse{}, errs.E(
-			op,
-			errs.Parameter("id"),
-			errs.Code("id cannot be zero"),
-			errs.Validation,
-		)
+// // Find is used to find a vehicle by ID
+// func (ds *depotService) Find(id int) (VehicleResponse, error) {
+// 	const op errs.Op = "depotService.Find"
+// 	if id == 0 {
+// 		return VehicleResponse{}, errs.E(
+// 			op,
+// 			errs.Parameter("id"),
+// 			errs.Code("id cannot be zero"),
+// 			errs.Validation,
+// 		)
 
-	}
+// 	}
 
-	v, err := ds.repo.ByID(id)
-	if err != nil {
-		return VehicleResponse{}, errs.E(op, err, errs.Database)
-	}
+// 	v, err := ds.repo.ByID(id)
+// 	if err != nil {
+// 		return VehicleResponse{}, errs.E(op, err, errs.Database)
+// 	}
 
-	vr := VehicleResponse{
-		ID:                v.ID,
-		Type:              v.Type,
-		LicensePlate:      v.LicensePlate,
-		PassengerCapacity: v.PassengerCapacity,
-		Model:             v.Model,
-		Make:              v.Make,
-		Year:              v.Year,
-		Mileage:           v.Mileage,
-	}
+// 	vr := VehicleResponse{
+// 		ID:                v.ID,
+// 		Type:              v.Type,
+// 		LicensePlate:      v.LicensePlate,
+// 		PassengerCapacity: v.PassengerCapacity,
+// 		Model:             v.Model,
+// 		Make:              v.Make,
+// 		Year:              v.Year,
+// 		Mileage:           v.Mileage,
+// 	}
 
-	return vr, nil
-}
+// 	return vr, nil
+// }
 
-// List is used to list all the vehicles in depot
-func (ds *depotService) List() ([]VehicleResponse, error) {
-	const op errs.Op = "depotService.List"
+// // List is used to list all the vehicles in depot
+// func (ds *depotService) List() ([]VehicleResponse, error) {
+// 	const op errs.Op = "depotService.List"
 
-	vehicles, err := ds.repo.All()
-	if err != nil {
-		return nil, errs.E(op, err, errs.Database)
-	}
+// 	vehicles, err := ds.repo.All()
+// 	if err != nil {
+// 		return nil, errs.E(op, err, errs.Database)
+// 	}
 
-	list := make([]VehicleResponse, 0, len(vehicles))
+// 	list := make([]VehicleResponse, 0, len(vehicles))
 
-	assemble := func(v vehicle.Vehicle) VehicleResponse {
-		return VehicleResponse{
-			ID:                v.ID,
-			Type:              v.Type,
-			LicensePlate:      v.LicensePlate,
-			PassengerCapacity: v.PassengerCapacity,
-			Model:             v.Model,
-			Make:              v.Make,
-			Year:              v.Year,
-			Mileage:           v.Mileage,
-		}
-	}
+// 	assemble := func(v vehicle.Vehicle) VehicleResponse {
+// 		return VehicleResponse{
+// 			ID:                v.ID,
+// 			Type:              v.Type,
+// 			LicensePlate:      v.LicensePlate,
+// 			PassengerCapacity: v.PassengerCapacity,
+// 			Model:             v.Model,
+// 			Make:              v.Make,
+// 			Year:              v.Year,
+// 			Mileage:           v.Mileage,
+// 		}
+// 	}
 
-	for _, v := range vehicles {
-		list = append(list, assemble(v))
-	}
-	return list, nil
+// 	for _, v := range vehicles {
+// 		list = append(list, assemble(v))
+// 	}
+// 	return list, nil
 
-}
+// }
 
-// Update is used to update a vehicle
-func (ds *depotService) Update(rb UpdateVehicleRequest) error {
-	const op errs.Op = "depotService.Update"
+// // Update is used to update a vehicle
+// func (ds *depotService) Update(rb UpdateVehicleRequest) error {
+// 	const op errs.Op = "depotService.Update"
 
-	v := vehicle.Vehicle{
-		Type:              rb.Type,
-		LicensePlate:      rb.LicensePlate,
-		PassengerCapacity: rb.PassengerCapacity,
-		Make:              rb.Make,
-		Model:             rb.Model,
-		Year:              rb.Year,
-		Mileage:           rb.Mileage,
-	}
+// 	v := vehicle.Vehicle{
+// 		Type:              rb.Type,
+// 		LicensePlate:      rb.LicensePlate,
+// 		PassengerCapacity: rb.PassengerCapacity,
+// 		Make:              rb.Make,
+// 		Model:             rb.Model,
+// 		Year:              rb.Year,
+// 		Mileage:           rb.Mileage,
+// 	}
 
-	if err := v.IsValid(); err != nil {
-		return errs.E(op, err, errs.Validation)
-	}
+// 	if err := v.IsValid(); err != nil {
+// 		return errs.E(op, err, errs.Validation)
+// 	}
 
-	v.ID = rb.ID
+// 	v.ID = rb.ID
 
-	if err := ds.repo.Update(v); err != nil {
-		return errs.E(op, err, errs.Database)
-	}
+// 	if err := ds.repo.Update(v); err != nil {
+// 		return errs.E(op, err, errs.Database)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-// Remove is used to remove a vehicle
-func (ds *depotService) Remove(id int) error {
-	const op errs.Op = "depotService.Delete"
+// // Remove is used to remove a vehicle
+// func (ds *depotService) Remove(id int) error {
+// 	const op errs.Op = "depotService.Delete"
 
-	err := ds.repo.Delete(id)
-	if err != nil {
-		return errs.E(op, err, errs.Database)
-	}
-	return nil
-}
+// 	err := ds.repo.Delete(id)
+// 	if err != nil {
+// 		return errs.E(op, err, errs.Database)
+// 	}
+// 	return nil
+// }

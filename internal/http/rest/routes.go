@@ -12,14 +12,14 @@ func Handler(s service.Service, lgr zerolog.Logger) http.Handler {
 	r := mux.NewRouter()
 	r.Use(
 		requestLogger(lgr),
-		//TODO: add setTimeout middleware
+		setTimeout,
 	)
 
 	r.HandleFunc("/vehicles", addVehicle(s, lgr)).Methods("POST")
-	r.HandleFunc("/vehicles", listVehicles(s, lgr)).Methods("GET")
-	r.HandleFunc("/vehicles/{id}", getVehicle(s, lgr)).Methods("GET")
-	r.HandleFunc("/vehicles/{id}", updateVehicle(s, lgr)).Methods("POST")
-	r.HandleFunc("/vehicles/{id}", deleteVehicle(s, lgr)).Methods("DELETE")
+	// r.HandleFunc("/vehicles", listVehicles(s, lgr)).Methods("GET")
+	// r.HandleFunc("/vehicles/{id}", getVehicle(s, lgr)).Methods("GET")
+	// r.HandleFunc("/vehicles/{id}", updateVehicle(s, lgr)).Methods("POST")
+	// r.HandleFunc("/vehicles/{id}", deleteVehicle(s, lgr)).Methods("DELETE")
 
 	return r
 }
