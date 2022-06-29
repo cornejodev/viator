@@ -1,10 +1,8 @@
 package logger
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/cornejodev/viator/internal/domain/errs"
@@ -20,8 +18,6 @@ func NewLogger(withTimestamp bool) (zerolog.Logger, error) {
 	if err != nil {
 		return zerolog.Logger{}, errs.E(op, err)
 	}
-
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	cw := SetupConsoleWriter()
 
@@ -63,22 +59,8 @@ func CreateLogFile(fname string) (*os.File, error) {
 
 func SetupConsoleWriter() zerolog.ConsoleWriter {
 	cw := zerolog.ConsoleWriter{Out: os.Stdout,
-		// NoColor:       true,
 		TimeFormat:    time.UnixDate,
 		FieldsExclude: []string{"remote_ip", "user_agent", "message"},
-	}
-
-	cw.FormatLevel = func(i interface{}) string {
-		return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
-	}
-	cw.FormatMessage = func(i interface{}) string {
-		return fmt.Sprintf("(%s)", i)
-	}
-	cw.FormatFieldName = func(i interface{}) string {
-		return fmt.Sprintf("%s:", i)
-	}
-	cw.FormatFieldValue = func(i interface{}) string {
-		return fmt.Sprintf("%s", i)
 	}
 
 	return cw
