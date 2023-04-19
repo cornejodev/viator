@@ -1,3 +1,3 @@
 # viator
 
-REST protoype for ar rental system
+REST protoype for car rental system
